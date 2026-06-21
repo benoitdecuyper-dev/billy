@@ -21,6 +21,7 @@ const TYPES = {
   '.mp3': 'audio/mpeg',
   '.jpg': 'image/jpeg',
   '.json': 'application/json; charset=utf-8',
+  '.pdf': 'application/pdf',
 };
 
 const server = http.createServer(async (req, res) => {
