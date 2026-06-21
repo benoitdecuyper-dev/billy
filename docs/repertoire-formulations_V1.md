@@ -1,5 +1,9 @@
 # Répertoire fermé de formulations — Billy V1 (Option A)
 
+> ⚠️ **Cible 2-5 ans** : ces formulations doivent être **raccourcies/simplifiées** pour les
+> tout-petits — voir `techniques-interview-2-5.md` et la source à jour
+> `public/content/script-billy.json`. Ce fichier reste la trame d'origine.
+>
 > **BROUILLON — NON VALIDÉ. À faire valider mot à mot par des professionnels** (expert audition
 > NICHD, pédopsychiatre/psychologue de l'enfant, pédiatre, juriste/magistrat) avant toute
 > intégration. Tant que ce répertoire n'est pas signé, **aucune de ces phrases n'est dite à un

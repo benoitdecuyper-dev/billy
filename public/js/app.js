@@ -1,5 +1,8 @@
 /*
  * Billy — prototype d'UX vocale (DÉMO), avatar écureuil + voix Chloé pré-enregistrée.
+ * Cible 2-5 ans : interaction MAINS-LIBRES (cf. docs/ux-2-5.md). Les répliques de cette démo
+ * restent celles déjà enregistrées ; la version « tout-petit » du script vit dans
+ * public/content/script-billy.json (source unique).
  *
  * ⚠️ Démo d'EXPÉRIENCE : contenu strictement NEUTRE (accueil + « raconte ta journée d'hier »).
  * Billy n'aborde jamais de sujet sensible ici.
@@ -8,7 +11,8 @@
  *   fermé. En Option A, Billy ne dit QUE des répliques validées → on peut tout pré-rendre.
  * - « Il parle quand il parle » : pendant la lecture audio, on alterne 2 images (bouche
  *   fermée / ouverte) → effet de bouche qui bouge.
- * - Billy NE COUPE JAMAIS l'enfant : c'est l'enfant qui dit « j'ai fini ».
+ * - Billy NE COUPE JAMAIS l'enfant ; il DÉTECTE TOUT SEUL la fin de parole (mains-libres,
+ *   aucun bouton côté enfant). Le bouton « pause » est réservé à l'adulte.
  */
 
 (() => {

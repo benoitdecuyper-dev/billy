@@ -1,25 +1,30 @@
 # Billy
 
-Application smartphone à IA conversationnelle vocale qui **aide à repérer si un enfant a pu
-subir une violence ou une agression sexuelle**, de façon **non-suggestive** (socle
-**NICHD**), tout en **soutenant le parent** — et qui **oriente vers les professionnels**
-(119 — Allô Enfance en Danger).
+Application smartphone à IA vocale, incarnée par une mascotte (un écureuil), qui **aide à
+repérer si un jeune enfant a pu subir une violence ou une agression**, de façon
+**strictement non-suggestive** (socle **NICHD**), **sans jamais l'interroger**, et qui
+**oriente vers les professionnels** (119 — Allô Enfance en Danger).
+
+**Cible principale : enfants de 2-5 ans** (voix + images, mains-libres — l'appareil est tenu
+par l'adulte). Voir `docs/cible-2-5-ans.md`.
 
 > ⚠️ Billy n'est **ni un outil de diagnostic, ni une preuve, ni un substitut à un
-> professionnel**. Lire impérativement `CLAUDE.md` et `docs/` avant toute contribution.
+> professionnel**. Tout le contenu est **BROUILLON, à valider par des professionnels** :
+> commencer par **`docs/00-POUR-VALIDATION-PRO.md`**.
 
 ## État
 
-Projet en **cadrage** (`docs/00-CADRAGE.md`). Règle : **pas de développement avant cadrage
-validé** par `factory-chef-de-projet` + `factory-expert-conformite` + les experts `billy-*`.
+Projet en **cadrage / conception**, **pas de développement applicatif avant validation pro +
+DPIA**. Un **prototype d'expérience** (forme : voix + mascotte + mains-libres, contenu neutre)
+existe (`npm start` → `http://localhost:3000`, et `/atelier.html` pour le Cahier de la posture).
 
-## Documentation
+## Documentation — commencer ici
 
-- `CLAUDE.md` — garde-fous non négociables + stack + workflow.
-- `docs/protocole-entretien-NICHD.md` — socle non-suggestif.
-- `docs/ethique-securite-escalade.md` — escalade & numéros (119…).
-- `docs/rgpd-donnees-sensibles.md` — données ultra-sensibles (mineurs).
-- `docs/00-CADRAGE.md` — note de cadrage V1 (brouillon).
+- **`docs/00-POUR-VALIDATION-PRO.md`** — dossier d'entrée + carte de tous les documents.
+- `CLAUDE.md` — 7 garde-fous non négociables.
+- `docs/00-CADRAGE.md` — note de cadrage (Option A). `docs/cible-2-5-ans.md` — la cible 2-5.
+- `docs/posture-reference_V1..V4.md` + `docs/techniques-interview-2-5.md` — la posture & les questions.
+- `docs/ethique-securite-escalade.md` · `docs/rgpd-donnees-sensibles.md` · `docs/rapport-de-seance.md`.
 
 ## Équipe d'experts (agents `.claude/agents/billy-*`)
 
