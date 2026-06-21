@@ -4,33 +4,56 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="theme-color" content="#7c6cf0" />
-  <title>Billy</title>
+  <title>Billy — démo</title>
   <link rel="stylesheet" href="/css/styles.css" />
 </head>
 <body>
-  <main class="app" role="main">
-    <!-- Avatar Billy (placeholder — l'illustration définitive viendra de billy-conception-vocale-enfant) -->
-    <figure class="billy" aria-label="Billy, ton amie qui t'écoute">
+  <main class="app" data-state="idle" role="main">
+
+    <div class="demo-badge" title="Démonstration d'expérience — contenu neutre uniquement">DÉMO · contenu neutre</div>
+
+    <!-- Avatar Billy -->
+    <figure class="billy" aria-label="Billy">
       <div class="billy__face">
         <span class="billy__eye"></span>
         <span class="billy__eye"></span>
         <span class="billy__smile"></span>
+        <!-- ondes d'écoute -->
+        <span class="billy__wave"></span>
+        <span class="billy__wave"></span>
+        <span class="billy__wave"></span>
       </div>
       <figcaption class="billy__name">Billy</figcaption>
     </figure>
 
-    <p class="billy__hello">Coucou, moi c'est Billy. Je suis un personnage sur ton téléphone et je suis là pour t'écouter.</p>
+    <!-- Bulle de ce que dit Billy (sous-titres) -->
+    <p class="bubble" id="subtitle" aria-live="polite">…</p>
 
-    <!-- Bouton de la boucle vocale (non connecté — squelette, cf. src/voice) -->
-    <button class="mic" type="button" disabled aria-disabled="true">
-      🎤 Parler avec Billy
-      <small>(bientôt disponible)</small>
-    </button>
+    <!-- Indicateur d'état -->
+    <p class="status" id="status">Appuie sur le bouton pour commencer</p>
+
+    <!-- Commande principale -->
+    <div class="controls">
+      <button class="mic" id="micBtn" type="button">
+        <span class="mic__icon">🎤</span>
+        <span class="mic__label" id="micLabel">Commencer</span>
+      </button>
+      <button class="stop" id="stopBtn" type="button" hidden>Arrêter</button>
+    </div>
+
+    <!-- Repli clavier si la voix n'est pas dispo -->
+    <form class="fallback" id="fallbackForm" hidden>
+      <input id="fallbackInput" type="text" autocomplete="off"
+             placeholder="Écris ta réponse à Billy…" aria-label="Réponse à Billy" />
+      <button type="submit">Envoyer</button>
+    </form>
 
     <p class="disclaimer">
-      Billy n'est pas un service d'urgence. En cas de danger, un adulte peut appeler le
-      <strong>119</strong> (gratuit, 24h/24).
+      Billy est un personnage, pas une vraie personne. Ceci est une démonstration.
+      En cas de danger, un adulte peut appeler le <strong>119</strong> (gratuit, 24h/24).
     </p>
   </main>
+
+  <script src="/js/app.js"></script>
 </body>
 </html>
