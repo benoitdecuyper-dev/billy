@@ -1,6 +1,12 @@
 # Note de cadrage — Billy (V1)
 
-> **STATUT : EN ATTENTE DE FEU VERT UTILISATEUR.**
+> **STATUT : ARBITRAGE TRANCHÉ — OPTION A RETENUE (feu vert utilisateur du 2026-06-21).**
+> Périmètre V1 = « support & orientation » : Billy met en confiance via un répertoire fermé de
+> formulations pré-validées, puis arrête et oriente vers l'humain dès tout signal sérieux ; le
+> recueil du récit sensible reste au professionnel. **Les conditions bloquantes ci-dessous
+> (validations professionnelles, DPIA/DPA, validation du répertoire) restent à lever avant tout
+> développement applicatif.**
+>
 > Cette note remplace le brouillon précédent. Elle synthétise les contributions de 7 experts
 > (audition NICHD, pédopsychologie, juridique/protection de l'enfance, éthique IA-enfant,
 > conception vocale, accompagnement parents, pédiatrie). Conformément à `CLAUDE.md`,
