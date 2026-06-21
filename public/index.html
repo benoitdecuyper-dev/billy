@@ -3,44 +3,28 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="theme-color" content="#ffb15c" />
+  <meta name="theme-color" content="#ec7a1e" />
   <title>Billy</title>
   <link rel="stylesheet" href="/css/styles.css" />
 </head>
 <body>
   <main class="app" data-state="idle" role="main">
 
-    <div class="demo-badge">démo · tout est doux et neutre</div>
+    <!-- Écran de départ : c'est l'ADULTE qui lance, puis donne le téléphone à l'enfant. -->
+    <div class="start" id="start">
+      <img class="start__billy" src="/assets/billy.png" alt="Billy" />
+      <p class="start__txt">Installez l'enfant confortablement, puis lancez et donnez-lui le téléphone.</p>
+      <button class="start__btn" id="startBtn">Commencer 🌰</button>
+      <p class="start__legal">Billy est un personnage. En cas de souci, un adulte peut appeler le <strong>119</strong> (gratuit, 24h/24).</p>
+    </div>
 
-    <!-- Avatar Billy : 2 images (bouche fermée / ouverte) alternées quand il parle -->
+    <!-- Écran enfant : Billy en grand, rien d'autre (pas de bouton, pas de texte). -->
     <figure class="billy" id="billy" aria-label="Billy l'écureuil">
       <span class="ring"></span><span class="ring"></span><span class="ring"></span>
       <img class="frame frame-closed" src="/assets/billy.png" alt="Billy" />
       <img class="frame frame-talk" src="/assets/billy-talk.png" alt="" aria-hidden="true" />
     </figure>
 
-    <p class="bubble" id="subtitle">Coucou ! 🌸</p>
-    <p class="status" id="status">Appuie sur le bouton quand tu es prêt·e</p>
-
-    <div class="controls">
-      <button class="mic" id="micBtn" type="button">
-        <span class="mic__icon">🌰</span>
-        <span class="mic__label" id="micLabel">Commencer</span>
-      </button>
-      <button class="done" id="doneBtn" type="button" hidden>J'ai fini de parler</button>
-      <button class="stop" id="stopBtn" type="button" hidden>Faire une pause</button>
-    </div>
-
-    <form class="fallback" id="fallbackForm" hidden>
-      <input id="fallbackInput" type="text" autocomplete="off"
-             placeholder="Tu peux aussi écrire à Billy…" aria-label="Réponse à Billy" />
-      <button type="submit">Envoyer</button>
-    </form>
-
-    <p class="disclaimer">
-      Billy est un personnage, pas une vraie personne. En cas de souci, un adulte peut
-      appeler le <strong>119</strong> (gratuit, 24h/24).
-    </p>
   </main>
 
   <script src="/js/app.js"></script>
