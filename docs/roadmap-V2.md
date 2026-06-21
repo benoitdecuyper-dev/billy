@@ -74,6 +74,27 @@ Billy va faire, comment réagir, et la marche à suivre/orientation.
   parler** et enchaîne tout seul — sans bouton « J'ai fini ». À régler avec prudence pour **ne
   jamais couper** l'enfant (seuils de silence généreux, jamais d'interruption).
 
+## V2-5 — Cadrage vocal IA avec le parent (avant la séance)
+
+**But.** Une **phase de cadrage en voix temps réel** où **le parent décrit la situation**, pour
+**trier** et **contextualiser** avant que l'enfant ne parle à Billy. Prolonge la préface (V2-3) :
+la préface *explique* la posture ; le cadrage *écoute* le parent.
+
+- **Exemples de situations à distinguer** :
+  - *Dépistage « au cas où »* (prévention, aucun élément précis).
+  - *Suspicion ciblée* (ex. « l'ATSEM de l'école semble avoir touché ma fille »).
+- **Ce que le cadrage produit** :
+  - un **niveau de départ** (prévention vs suspicion) qui adapte le ton et l'orientation ;
+  - un **contexte** versé dans le **rapport de séance** (récit du parent, daté), utile au pro ;
+  - le bon aiguillage (ex. suspicion sérieuse → mettre le 119 en avant d'emblée).
+- **GARDE-FOU CRITIQUE — pare-feu anti-contamination** : si le parent **nomme** un acte, un lieu
+  ou une **personne soupçonnée**, ces informations **NE DOIVENT JAMAIS** être réutilisées par
+  Billy avec l'enfant (Billy ne nomme jamais en premier). Le cadrage parent est **cloisonné** de
+  la session enfant : il informe le tri et le rapport, **pas** les questions posées à l'enfant.
+- **Autres garde-fous** : transparence (IA, pas un pro) ; pas de conseil juridique/médical
+  personnalisé ; RGPD (le récit du parent peut nommer un tiers → données sensibles, minimisation,
+  pas de qualification ni de désignation par l'app) ; le parent reste orienté vers les pros.
+
 ## Backlog
 À intégrer comme épopées : **BILLY-E12** (trace audio), **BILLY-E13** (2ᵉ téléphone /
 co-observation Barnahus), **BILLY-E14** (préface adulte). Toutes **bloquées** tant que les

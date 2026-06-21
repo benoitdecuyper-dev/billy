@@ -90,20 +90,51 @@ function renderReport(doc, s) {
   footer(doc, "Document généré localement. Données sensibles : à transmettre uniquement aux personnes habilitées, puis à supprimer si non nécessaire.");
 }
 
+// Pré-diagnostic propre à la séance (déduit des signaux). PAS un diagnostic clinique/judiciaire.
+function preDiag(s) {
+  if (s.preDiagnostic) return s.preDiagnostic;
+  const has = s.signaux && s.signaux.length;
+  return {
+    niveau: has ? 'Vigilance — orientation recommandée' : 'Aucune alerte dans cet échange',
+    constat: has ? s.signaux : ['Aucun signal de danger repéré au cours de cet échange.'],
+    action: has
+      ? "Par précaution, appelez le 119 pour en parler (gratuit, confidentiel). En cas de danger immédiat : 17 / 112."
+      : "Aucune action d'urgence requise au vu de cet échange. En cas de doute, vous pouvez toujours appeler le 119. Des ressources de prévention sont disponibles.",
+  };
+}
+
 // ---------- 2) Démarche d'orientation ----------
 function renderDemarche(doc, s) {
+  const pd = preDiag(s);
   title(doc, "Que faire — démarche d'orientation");
-  subtitle(doc, "À lire par l'adulte. Ce n'est pas un diagnostic : c'est une marche à suivre standard si un risque est identifié.");
+  subtitle(doc, "À lire par l'adulte.");
 
-  heading(doc, 'Marche à suivre');
+  // --- PARTIE 1 : spécifique à l'enfant ---
+  heading(doc, "1. Pré-diagnostic de cette séance (propre à l'enfant)");
+  note(doc, "Établi à partir des réponses de l'enfant dans CET échange. Ce n'est PAS un diagnostic médical ou judiciaire : c'est une aide à l'orientation, qui ne qualifie rien et ne désigne personne.");
+  doc.font('Helvetica-Bold').fontSize(10.5).fillColor(INK).text('Signaux repérés dans cet échange :');
+  doc.moveDown(0.1);
+  for (const c of pd.constat) bullet(doc, c);
+  doc.moveDown(0.2);
+  doc.font('Helvetica-Bold').fontSize(10.5).fillColor(INK).text('Niveau : ', { continued: true });
+  doc.font('Helvetica').fillColor(INK).text(pd.niveau);
+  doc.moveDown(0.2);
+  doc.font('Helvetica-Bold').fontSize(11.5).fillColor(PINK).text('Action recommandée maintenant : ', { continued: true });
+  doc.font('Helvetica').fontSize(11).fillColor(INK).text(pd.action);
+
+  // --- PARTIE 2 : général ---
+  heading(doc, '2. Repères généraux (indépendants de cette séance)');
+  note(doc, "Ces repères sont les mêmes pour toute situation ; ils ne dépendent pas de cet enfant ni de cet échange.");
+  doc.font('Helvetica-Bold').fontSize(10.5).fillColor(INK).text('Qui appeler, selon la situation :');
+  doc.moveDown(0.2);
   for (const o of s.orientation) {
     doc.font('Helvetica-Bold').fontSize(10.5).fillColor(INK).text(o.niveau + ' — ', { continued: true });
     doc.font('Helvetica').fillColor(INK).text(o.action);
-    doc.moveDown(0.2);
+    doc.moveDown(0.15);
   }
-  note(doc, "En cas de doute, appelez le 119 : c'est fait pour ça. Le coût d'une fausse alerte est faible ; celui d'un signal manqué est inacceptable.");
-
-  heading(doc, "Rappels pour l'adulte");
+  doc.moveDown(0.3);
+  doc.font('Helvetica-Bold').fontSize(10.5).fillColor(INK).text('Bonnes pratiques avec un enfant (générales) :');
+  doc.moveDown(0.1);
   for (const r of [
     "Croire l'enfant et le lui dire ; le déculpabiliser (« ce n'est pas ta faute »).",
     "Ne pas confronter la personne soupçonnée. Ne pas faire répéter l'enfant.",
