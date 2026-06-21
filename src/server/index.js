@@ -64,6 +64,15 @@ async function handler(req, res) {
     return;
   }
 
+  // Sert le VRAI module anti-suggestion (testé) au prototype temps réel.
+  if (url.pathname === '/lib/antiSuggestion.js') {
+    try {
+      const data = await readFile(path.resolve(__dirname, '../safety/antiSuggestion.js'));
+      res.writeHead(200, { 'Content-Type': 'text/javascript; charset=utf-8' }); res.end(data);
+    } catch { res.writeHead(404); res.end('not found'); }
+    return;
+  }
+
   const urlPath = url.pathname === '/' ? '/index.html' : url.pathname;
   const filePath = path.join(PUBLIC_DIR, path.normalize(urlPath).replace(/^(\.\.[/\\])+/, ''));
   try {
