@@ -26,6 +26,12 @@ le professionnel.
 direct (audio + vidéo) depuis un autre appareil. C'est l'esprit **Barnahus** (un intervenant
 avec l'enfant, un autre qui observe derrière la vitre).
 
+- **Parcours / UX (propre, sans friction)** : côté **adulte**, après la préface (V2-3), un
+  **QR code** est affiché. On le **scanne avec l'autre smartphone** pour **lancer la séance de
+  l'enfant** et **appairer** les deux appareils — l'adulte suit alors la conversation (audio +
+  vidéo) depuis son téléphone. Aucun lien à taper, appairage en un scan.
+  - Le QR encode un **jeton d'appairage à usage unique, à durée de vie courte**, lié à une
+    session chiffrée (pas un identifiant devinable, pas un lien public).
 - **Cas d'usage fort** : un professionnel (119, psy, enquêteur) accompagne à distance.
 - **Garde-fous critiques** (cette fonctionnalité est la plus sensible du projet) :
   - **Appairage contrôlé et authentifié** : seul un destinataire **explicitement autorisé** y
