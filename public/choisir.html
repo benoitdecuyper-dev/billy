@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Billy — voix</title>
+  <style>
+    body { margin:0; font-family:"Segoe UI",system-ui,sans-serif; color:#5b4a52;
+           background:radial-gradient(120% 70% at 50% -10%,#fff 0%,#ffeef4 45%,#f3ecff 100%); padding:2rem 1rem 4rem; }
+    h1 { text-align:center; color:#ec6a9c; }
+    p.sub { text-align:center; color:#9a8a92; margin-top:-.4rem; }
+    .billy { display:block; width:170px; margin:1rem auto; border-radius:24px; background:#fff6f0; box-shadow:0 10px 30px rgba(236,106,156,.18); }
+    .voices { max-width:520px; margin:1.5rem auto; display:flex; flex-direction:column; gap:1rem; }
+    .voice { background:#fff; border-radius:20px; padding:1.1rem 1.3rem; box-shadow:0 8px 24px rgba(236,106,156,.13); }
+    .voice .name { font-weight:800; color:#ec6a9c; font-size:1.2rem; margin-bottom:.5rem; }
+    .voice audio { width:100%; }
+    .hint { text-align:center; color:#9a8a92; font-size:.9rem; margin-top:2rem; }
+  </style>
+</head>
+<body>
+  <h1>La voix de Billy 🐿️</h1>
+  <p class="sub">Écoute les 3 voix et dis-moi laquelle tu préfères (Chloé, Gia ou Luna).</p>
+
+  <img class="billy" src="/assets/billy.png" alt="Billy" />
+
+  <div class="voices">
+    <div class="voice">
+      <div class="name">🌸 Chloé</div>
+      <audio controls preload="none" src="https://d8j0ntlcm91z4.cloudfront.net/user_39RaGpYb7DiLMAQFC4uWXwSGwtL/hf_20260621_152757_1f47562a-fdc0-40ca-bd73-ecc5d9ff815a.mp3"></audio>
+    </div>
+    <div class="voice">
+      <div class="name">🌸 Gia</div>
+      <audio controls preload="none" src="https://d8j0ntlcm91z4.cloudfront.net/user_39RaGpYb7DiLMAQFC4uWXwSGwtL/hf_20260621_152759_bd0e3f38-e0c7-4383-9518-15e3f3ff2a4c.mp3"></audio>
+    </div>
+    <div class="voice">
+      <div class="name">🌸 Luna</div>
+      <audio controls preload="none" src="https://d8j0ntlcm91z4.cloudfront.net/user_39RaGpYb7DiLMAQFC4uWXwSGwtL/hf_20260621_152759_d54ce946-8228-4b8b-9439-8a323140e02d.mp3"></audio>
+    </div>
+  </div>
+
+  <p class="hint">Toutes disent la même phrase : « Coucou, moi c'est Billy. Je suis là juste pour t'écouter… »</p>
+</body>
+</html>

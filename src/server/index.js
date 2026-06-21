@@ -17,6 +17,9 @@ const TYPES = {
   '.js': 'text/javascript; charset=utf-8',
   '.svg': 'image/svg+xml',
   '.png': 'image/png',
+  '.webp': 'image/webp',
+  '.mp3': 'audio/mpeg',
+  '.jpg': 'image/jpeg',
 };
 
 const server = http.createServer(async (req, res) => {

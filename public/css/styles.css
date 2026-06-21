@@ -5,9 +5,6 @@
   --ink: #5b4a52;
   --muted: #9a8a92;
   --ok: #6bbf8a;
-  --skin: #ffd9c0;
-  --hair: #8a542f;
-  --shirt: #ffc2d4;
 }
 
 * { box-sizing: border-box; }
@@ -17,8 +14,7 @@ body {
   margin: 0;
   font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
   color: var(--ink);
-  background:
-    radial-gradient(120% 70% at 50% -10%, #fff 0%, #ffeef4 45%, #f3ecff 100%);
+  background: radial-gradient(120% 70% at 50% -10%, #fff 0%, #ffeef4 45%, #f3ecff 100%);
 }
 
 .app {
@@ -38,72 +34,36 @@ body {
   box-shadow: 0 3px 12px rgba(236,106,156,.15);
 }
 
-.voicepick {
-  position: absolute; top: calc(.6rem + env(safe-area-inset-top)); right: .8rem;
-  display: flex; align-items: center; gap: .25rem;
-  font-size: .8rem; color: var(--muted);
-}
-.voicepick select {
-  max-width: 130px; border: 1px solid #f0dbe4; border-radius: 8px;
-  padding: .2rem .3rem; font-size: .75rem; color: var(--muted); background: #fff;
-}
+/* ---------- Avatar (2 frames) ---------- */
+.billy { margin: 0; position: relative; width: 210px; height: 210px; }
+.frame { position: absolute; inset: 0; width: 210px; height: 210px; object-fit: contain; }
+.frame-talk { opacity: 0; }
+.billy.open .frame-talk { opacity: 1; }
+.billy.open .frame-closed { opacity: 0; }
 
-/* ---------- Avatar ---------- */
-.billy { margin: 0; display: flex; flex-direction: column; align-items: center; gap: .4rem; position: relative; }
+/* respiration douce au repos / écoute */
+.app[data-state="idle"] .billy,
+.app[data-state="listening"] .billy { animation: breathe 4s ease-in-out infinite; }
+@keyframes breathe { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
 
-.billy-svg {
-  width: 200px; height: auto;
-  filter: drop-shadow(0 12px 26px rgba(236,106,156,.28));
-  transition: transform .3s ease;
-}
-.face { fill: var(--skin); }
-.hair { fill: var(--hair); }
-.shirt { fill: var(--shirt); }
-.cheek { fill: #ff8fb0; opacity: .55; }
-.eye { fill: #4a3329; }
-.glint { fill: #fff; }
-.brow { stroke: #9a6a45; stroke-width: 3.5; fill: none; stroke-linecap: round; }
-.smile { stroke: var(--pink-deep); stroke-width: 4.5; fill: none; stroke-linecap: round; }
-.mouth-open { fill: var(--pink-deep); opacity: 0; }
-.petal { fill: #fff; }
-.petal-c { fill: #ffd66e; }
-
-.billy__name { font-weight: 800; color: var(--pink-deep); font-size: 1.35rem; letter-spacing: .02em; }
-
-/* clignement des yeux (toujours, doux) */
-.eyes { transform-box: fill-box; transform-origin: center; animation: blink 5s infinite; }
-@keyframes blink {
-  0%, 92%, 100% { transform: scaleY(1); }
-  95% { transform: scaleY(.1); }
-}
-
-/* respiration douce au repos */
-.app[data-state="idle"] .billy-svg,
-.app[data-state="listening"] .billy-svg { animation: breathe 4s ease-in-out infinite; }
-@keyframes breathe { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
-
-/* Billy parle : la bouche s'ouvre/ferme, le sourire s'efface */
-.app[data-state="speaking"] .smile { opacity: 0; }
-.app[data-state="speaking"] .mouth-open { animation: talk .32s ease-in-out infinite; }
-@keyframes talk {
-  0%, 100% { opacity: 1; ry: 3px; }
-  50% { opacity: 1; ry: 9px; }
-}
+/* léger rebond quand il parle */
+.app[data-state="speaking"] .billy { animation: bob .5s ease-in-out infinite; }
+@keyframes bob { 0%,100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-3px) scale(1.02); } }
 
 /* ondes d'écoute */
-.ring { position: absolute; top: 8px; width: 200px; height: 200px; border: 2px solid var(--pink); border-radius: 50%; opacity: 0; }
+.ring { position: absolute; top: 50%; left: 50%; width: 200px; height: 200px; margin: -100px 0 0 -100px;
+        border: 2px solid var(--pink); border-radius: 50%; opacity: 0; }
 .app[data-state="listening"] .ring { animation: ring 2s ease-out infinite; }
 .app[data-state="listening"] .ring:nth-of-type(2) { animation-delay: .66s; }
 .app[data-state="listening"] .ring:nth-of-type(3) { animation-delay: 1.33s; }
-@keyframes ring { 0% { opacity: .45; transform: scale(.85); } 100% { opacity: 0; transform: scale(1.35); } }
+@keyframes ring { 0% { opacity: .4; transform: scale(.7); } 100% { opacity: 0; transform: scale(1.15); } }
 
 /* ---------- Bulle / statut ---------- */
 .bubble {
   min-height: 3.2em; max-width: 30ch;
   font-size: 1.18rem; line-height: 1.5;
   background: #fff; border-radius: 22px; padding: 1rem 1.2rem;
-  box-shadow: 0 8px 26px rgba(91,74,82,.08);
-  margin: 0;
+  box-shadow: 0 8px 26px rgba(91,74,82,.08); margin: 0;
 }
 .status { font-size: .92rem; color: var(--muted); margin: 0; min-height: 1.2em; }
 .app[data-state="listening"] .status { color: var(--ok); font-weight: 700; }
@@ -121,15 +81,11 @@ body {
 .mic:active { transform: scale(.97); }
 .mic:disabled { opacity: .5; box-shadow: none; cursor: default; }
 
-.done {
-  border: none; background: var(--ok); color: #fff; font-weight: 700;
-  font-size: 1rem; padding: .85rem 1.3rem; border-radius: 999px; cursor: pointer;
-  box-shadow: 0 8px 20px rgba(107,191,138,.4);
-}
-.stop {
-  border: 1px solid #f0dbe4; background: #fff; color: var(--muted);
-  font-size: .92rem; padding: .8rem 1.1rem; border-radius: 999px; cursor: pointer;
-}
+.done { border: none; background: var(--ok); color: #fff; font-weight: 700;
+        font-size: 1rem; padding: .85rem 1.3rem; border-radius: 999px; cursor: pointer;
+        box-shadow: 0 8px 20px rgba(107,191,138,.4); }
+.stop { border: 1px solid #f0dbe4; background: #fff; color: var(--muted);
+        font-size: .92rem; padding: .8rem 1.1rem; border-radius: 999px; cursor: pointer; }
 
 .fallback { display: flex; gap: .5rem; width: 100%; max-width: 360px; }
 .fallback input { flex: 1; padding: .8rem 1rem; border: 1px solid #f0dbe4; border-radius: 14px; font-size: 1rem; }
@@ -138,6 +94,4 @@ body {
 .disclaimer { font-size: .82rem; color: var(--muted); max-width: 34ch; line-height: 1.45; }
 .disclaimer strong { color: var(--pink-deep); }
 
-@media (prefers-reduced-motion: reduce) {
-  .billy-svg, .eyes, .ring, .mouth-open { animation: none !important; }
-}
+@media (prefers-reduced-motion: reduce) { .billy, .ring { animation: none !important; } }

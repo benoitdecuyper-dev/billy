@@ -12,59 +12,19 @@
 
     <div class="demo-badge">démo · tout est doux et neutre</div>
 
-    <!-- Sélecteur de voix (coin parent, discret) -->
-    <label class="voicepick">
-      <span>🔊</span>
-      <select id="voicePick" aria-label="Choisir la voix de Billy"></select>
-    </label>
-
-    <!-- Avatar Billy : une gentille petite fille dessinée -->
-    <figure class="billy" aria-label="Billy">
+    <!-- Avatar Billy : 2 images (bouche fermée / ouverte) alternées quand il parle -->
+    <figure class="billy" id="billy" aria-label="Billy l'écureuil">
       <span class="ring"></span><span class="ring"></span><span class="ring"></span>
-      <svg class="billy-svg" viewBox="0 0 240 250" role="img" aria-label="Billy, une gentille petite fille">
-        <!-- épaules / pull -->
-        <path class="shirt" d="M34 250 q86 -64 172 0 Z" />
-        <!-- cheveux arrière -->
-        <ellipse class="hair" cx="120" cy="124" rx="80" ry="82" />
-        <!-- visage -->
-        <ellipse class="face" cx="120" cy="122" rx="63" ry="67" />
-        <!-- oreilles -->
-        <circle class="face" cx="58" cy="126" r="9" />
-        <circle class="face" cx="182" cy="126" r="9" />
-        <!-- frange -->
-        <path class="hair" d="M56 98 q8 -58 64 -60 q56 2 64 60 q-30 -28 -64 -23 q-34 -5 -64 23 Z" />
-        <!-- joues roses -->
-        <ellipse class="cheek" cx="84" cy="142" rx="14" ry="9" />
-        <ellipse class="cheek" cx="156" cy="142" rx="14" ry="9" />
-        <!-- yeux -->
-        <g class="eyes">
-          <ellipse class="eye" cx="95" cy="120" rx="9.5" ry="12" />
-          <ellipse class="eye" cx="145" cy="120" rx="9.5" ry="12" />
-          <circle class="glint" cx="98" cy="115" r="3.2" />
-          <circle class="glint" cx="148" cy="115" r="3.2" />
-        </g>
-        <!-- sourcils doux -->
-        <path class="brow" d="M84 104 q11 -7 22 -1" />
-        <path class="brow" d="M134 103 q11 -6 22 1" />
-        <!-- bouche : sourire (repos) + bouche ouverte (quand elle parle) -->
-        <path class="smile" d="M102 152 q18 17 36 0" />
-        <ellipse class="mouth-open" cx="120" cy="156" rx="11" ry="8" />
-        <!-- petite fleur dans les cheveux -->
-        <g class="flower" transform="translate(72,70)">
-          <circle class="petal" cx="0" cy="-9" r="6" /><circle class="petal" cx="9" cy="0" r="6" />
-          <circle class="petal" cx="0" cy="9" r="6" /><circle class="petal" cx="-9" cy="0" r="6" />
-          <circle class="petal-c" cx="0" cy="0" r="5" />
-        </g>
-      </svg>
-      <figcaption class="billy__name">Billy</figcaption>
+      <img class="frame frame-closed" src="/assets/billy.png" alt="Billy" />
+      <img class="frame frame-talk" src="/assets/billy-talk.png" alt="" aria-hidden="true" />
     </figure>
 
-    <p class="bubble" id="subtitle" aria-live="polite">Coucou ! 🌸</p>
+    <p class="bubble" id="subtitle">Coucou ! 🌸</p>
     <p class="status" id="status">Appuie sur le bouton quand tu es prêt·e</p>
 
     <div class="controls">
       <button class="mic" id="micBtn" type="button">
-        <span class="mic__icon">🌸</span>
+        <span class="mic__icon">🌰</span>
         <span class="mic__label" id="micLabel">Commencer</span>
       </button>
       <button class="done" id="doneBtn" type="button" hidden>J'ai fini de parler</button>
