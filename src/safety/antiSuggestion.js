@@ -78,6 +78,7 @@ const OPEN_QUESTIONS = new Set([
   "Est-ce qu'il y a quelque chose qui t'embête ou t'inquiète, et dont tu voudrais me parler ?",
   "Comment tu te sens en ce moment ?",
   "Et après ?",
+  "Et après, qu'est-ce qui s'est passé ?",
   "Et ensuite, qu'est-ce qui s'est passé ?",
   "Tu veux bien me redire, avec tes mots, ce qu'on fait si tu ne sais pas quelque chose ?",
 ].map(canon));
