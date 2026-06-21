@@ -84,8 +84,11 @@ LLM face à l'enfant).
 
 **Dans le périmètre :**
 - Avatar Billy + **boucle vocale temps réel** (STT → moteur → TTS) sur **PWA mobile-first**.
-- **Cible d'âge : 6–10 ans** (âge déclaré par le parent). **Exclusion stricte des 3–5 ans**
-  (suggestibilité maximale).
+- **Cible d'âge : ⚠️ CADUC — voir `cible-2-5-ans.md`.** La cible principale est désormais
+  **2–5 ans** (décision 2026-06-21). À cet âge : appareil tenu par l'adulte, enfant non-lecteur
+  (voix + images, mains-libres), suggestibilité maximale → Billy **n'investigue pas**, rôle =
+  mise en confiance + repérage + orientation ; recueil 100 % aux pros. Revalidation
+  pédopsychiatrie petite enfance impérative. *(L'hypothèse 6–10 ci-dessous est obsolète.)*
 - Moteur d'entretien suivant les **phases NICHD** (mise en confiance → règles de base →
   entraînement récit épisodique neutre → transition ouverte → relais), à partir d'un
   **répertoire fermé pré-validé**.
