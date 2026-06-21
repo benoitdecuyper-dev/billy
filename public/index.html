@@ -3,54 +3,83 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="theme-color" content="#7c6cf0" />
-  <title>Billy — démo</title>
+  <meta name="theme-color" content="#ffd1dc" />
+  <title>Billy</title>
   <link rel="stylesheet" href="/css/styles.css" />
 </head>
 <body>
   <main class="app" data-state="idle" role="main">
 
-    <div class="demo-badge" title="Démonstration d'expérience — contenu neutre uniquement">DÉMO · contenu neutre</div>
+    <div class="demo-badge">démo · tout est doux et neutre</div>
 
-    <!-- Avatar Billy -->
+    <!-- Sélecteur de voix (coin parent, discret) -->
+    <label class="voicepick">
+      <span>🔊</span>
+      <select id="voicePick" aria-label="Choisir la voix de Billy"></select>
+    </label>
+
+    <!-- Avatar Billy : une gentille petite fille dessinée -->
     <figure class="billy" aria-label="Billy">
-      <div class="billy__face">
-        <span class="billy__eye"></span>
-        <span class="billy__eye"></span>
-        <span class="billy__smile"></span>
-        <!-- ondes d'écoute -->
-        <span class="billy__wave"></span>
-        <span class="billy__wave"></span>
-        <span class="billy__wave"></span>
-      </div>
+      <span class="ring"></span><span class="ring"></span><span class="ring"></span>
+      <svg class="billy-svg" viewBox="0 0 240 250" role="img" aria-label="Billy, une gentille petite fille">
+        <!-- épaules / pull -->
+        <path class="shirt" d="M34 250 q86 -64 172 0 Z" />
+        <!-- cheveux arrière -->
+        <ellipse class="hair" cx="120" cy="124" rx="80" ry="82" />
+        <!-- visage -->
+        <ellipse class="face" cx="120" cy="122" rx="63" ry="67" />
+        <!-- oreilles -->
+        <circle class="face" cx="58" cy="126" r="9" />
+        <circle class="face" cx="182" cy="126" r="9" />
+        <!-- frange -->
+        <path class="hair" d="M56 98 q8 -58 64 -60 q56 2 64 60 q-30 -28 -64 -23 q-34 -5 -64 23 Z" />
+        <!-- joues roses -->
+        <ellipse class="cheek" cx="84" cy="142" rx="14" ry="9" />
+        <ellipse class="cheek" cx="156" cy="142" rx="14" ry="9" />
+        <!-- yeux -->
+        <g class="eyes">
+          <ellipse class="eye" cx="95" cy="120" rx="9.5" ry="12" />
+          <ellipse class="eye" cx="145" cy="120" rx="9.5" ry="12" />
+          <circle class="glint" cx="98" cy="115" r="3.2" />
+          <circle class="glint" cx="148" cy="115" r="3.2" />
+        </g>
+        <!-- sourcils doux -->
+        <path class="brow" d="M84 104 q11 -7 22 -1" />
+        <path class="brow" d="M134 103 q11 -6 22 1" />
+        <!-- bouche : sourire (repos) + bouche ouverte (quand elle parle) -->
+        <path class="smile" d="M102 152 q18 17 36 0" />
+        <ellipse class="mouth-open" cx="120" cy="156" rx="11" ry="8" />
+        <!-- petite fleur dans les cheveux -->
+        <g class="flower" transform="translate(72,70)">
+          <circle class="petal" cx="0" cy="-9" r="6" /><circle class="petal" cx="9" cy="0" r="6" />
+          <circle class="petal" cx="0" cy="9" r="6" /><circle class="petal" cx="-9" cy="0" r="6" />
+          <circle class="petal-c" cx="0" cy="0" r="5" />
+        </g>
+      </svg>
       <figcaption class="billy__name">Billy</figcaption>
     </figure>
 
-    <!-- Bulle de ce que dit Billy (sous-titres) -->
-    <p class="bubble" id="subtitle" aria-live="polite">…</p>
+    <p class="bubble" id="subtitle" aria-live="polite">Coucou ! 🌸</p>
+    <p class="status" id="status">Appuie sur le bouton quand tu es prêt·e</p>
 
-    <!-- Indicateur d'état -->
-    <p class="status" id="status">Appuie sur le bouton pour commencer</p>
-
-    <!-- Commande principale -->
     <div class="controls">
       <button class="mic" id="micBtn" type="button">
-        <span class="mic__icon">🎤</span>
+        <span class="mic__icon">🌸</span>
         <span class="mic__label" id="micLabel">Commencer</span>
       </button>
-      <button class="stop" id="stopBtn" type="button" hidden>Arrêter</button>
+      <button class="done" id="doneBtn" type="button" hidden>J'ai fini de parler</button>
+      <button class="stop" id="stopBtn" type="button" hidden>Faire une pause</button>
     </div>
 
-    <!-- Repli clavier si la voix n'est pas dispo -->
     <form class="fallback" id="fallbackForm" hidden>
       <input id="fallbackInput" type="text" autocomplete="off"
-             placeholder="Écris ta réponse à Billy…" aria-label="Réponse à Billy" />
+             placeholder="Tu peux aussi écrire à Billy…" aria-label="Réponse à Billy" />
       <button type="submit">Envoyer</button>
     </form>
 
     <p class="disclaimer">
-      Billy est un personnage, pas une vraie personne. Ceci est une démonstration.
-      En cas de danger, un adulte peut appeler le <strong>119</strong> (gratuit, 24h/24).
+      Billy est un personnage, pas une vraie personne. En cas de souci, un adulte peut
+      appeler le <strong>119</strong> (gratuit, 24h/24).
     </p>
   </main>
 
