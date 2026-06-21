@@ -14,9 +14,12 @@ par l'adulte). Voir `docs/cible-2-5-ans.md`.
 
 ## État
 
-Projet en **cadrage / conception**, **pas de développement applicatif avant validation pro +
-DPIA**. Un **prototype d'expérience** (forme : voix + mascotte + mains-libres, contenu neutre)
-existe (`npm start` → `http://localhost:3000`, et `/atelier.html` pour le Cahier de la posture).
+**Prototype fonctionnel, prêt-pour-prod côté technique** (contenu neutre, à valider).
+`npm start` → `http://localhost:3000` : accueil → **espace adulte** (préface + questionnaire) →
+**séance temps réel** (voix live, mains-libres, Modèle A + filtre anti-suggestion) → **rapport PDF**.
+PWA installable. Voir **`docs/00-ETAT-ET-PROD.md`** (état + chemin vers la prod) et
+**`docs/00-POUR-VALIDATION-PRO.md`** (dossier pros). **Rien ne doit servir avec un vrai enfant
+avant validation professionnelle + DPIA.**
 
 ## Documentation — commencer ici
 
