@@ -17,6 +17,8 @@
 
   const SCRIPT = [
     { type: 'say', audio: 'a1', text: "Coucou ! Moi, c'est Billy. Je suis un petit écureuil tout doux. Je suis trop content de te voir !" },
+    { type: 'say', audio: 'gym', anim: 'gym', text: "Tu sais quoi ? Moi, j'adore la gymnastique ! Je fais des roulades, et des roues, et hop, hop, hop !" },
+    { type: 'say', audio: 'rugby', anim: 'rugby', text: "Et j'adore aussi le rugby ! Je cours super vite avec le ballon, et hop, j'attrape !" },
     { type: 'say', audio: 'a2', text: "Je suis là juste pour t'écouter. Ici, tu peux parler avec tes mots à toi. Il n'y a pas de bonne ou de mauvaise réponse." },
     { type: 'say', audio: 'a3', text: "Si à un moment tu veux qu'on s'arrête, tu me le dis, et on arrête. C'est toi qui décides." },
     { type: 'ask', audio: 'a4', followups: 1, text: "Pour faire connaissance tout doucement, raconte-moi ta journée d'hier. Du réveil jusqu'au soir. Prends tout ton temps." },
@@ -59,9 +61,9 @@
     return new Promise((resolve) => {
       setState('speaking');
       if (!approved(line)) { resolve(); return; }
-      startFlap();
+      if (line.anim) billy.dataset.anim = line.anim; else startFlap(); // gym/rugby : on anime, pas de bouche
       audioEl = new Audio('/assets/audio/' + line.audio + '.mp3');
-      const done = () => { stopFlap(); resolve(); };
+      const done = () => { stopFlap(); billy.removeAttribute('data-anim'); resolve(); };
       audioEl.onended = done; audioEl.onerror = done;
       audioEl.play().catch(done);
     });
