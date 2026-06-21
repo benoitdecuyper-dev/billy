@@ -95,6 +95,22 @@ la préface *explique* la posture ; le cadrage *écoute* le parent.
   personnalisé ; RGPD (le récit du parent peut nommer un tiers → données sensibles, minimisation,
   pas de qualification ni de désignation par l'app) ; le parent reste orienté vers les pros.
 
+## V2-6 — Vidéo tuto pour les parents
+
+**But.** Une **courte vidéo pédagogique** qui explique aux parents comment utiliser Billy et,
+surtout, **la bonne posture** : pourquoi ne pas interroger soi-même, comment réagir, la marche à
+suivre.
+
+- **Contenu** (puisé dans `posture-reference_V2.md` et `billy-accompagnement-parents`) : à quoi
+  sert Billy (accueillir/orienter, pas enquêter) ; les bonnes réactions (« je te crois », « ce
+  n'est pas ta faute ») ; les pièges (ne pas promettre le secret, ne pas faire répéter, ne pas
+  confronter) ; le rapport + la démarche d'orientation (119…).
+- **Forme** : ton rassurant, **cohérent avec l'identité** (Billy l'écureuil, palette orange,
+  voix Chloé) ; sous-titrée ; courte (≈ 1–2 min). Production possible via les outils de
+  génération vidéo.
+- **Garde-fous** : message validé avec les associations ; transparence (Billy = programme) ;
+  oriente vers les professionnels ; pas de conseil médical/juridique personnalisé.
+
 ## Backlog
 À intégrer comme épopées : **BILLY-E12** (trace audio), **BILLY-E13** (2ᵉ téléphone /
 co-observation Barnahus), **BILLY-E14** (préface adulte). Toutes **bloquées** tant que les
