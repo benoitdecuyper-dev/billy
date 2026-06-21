@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#ec7a1e" />
+  <title>Billy — prototypes V2</title>
+  <style>
+    :root{--orange:#ec7a1e;--ink:#4f4438;--muted:#998a78;}
+    *{box-sizing:border-box;} body{margin:0;font-family:"Segoe UI",system-ui,sans-serif;color:var(--ink);
+      background:radial-gradient(120% 70% at 50% -10%,#fff,#fff2e3 45%,#ffe7d2);min-height:100dvh;padding:1.5rem;}
+    .wrap{max-width:560px;margin:0 auto;}
+    h1{color:var(--orange);text-align:center;font-size:1.3rem;}
+    a.tile{display:block;background:#fff;border-radius:16px;padding:1rem 1.2rem;margin:.8rem 0;text-decoration:none;color:var(--ink);
+      box-shadow:0 8px 22px rgba(236,122,30,.1);}
+    a.tile b{color:var(--orange);} a.tile small{color:var(--muted);display:block;margin-top:.2rem;font-weight:400;}
+    .note{font-size:.82rem;color:var(--muted);text-align:center;margin-top:1rem;line-height:1.5;}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Billy — prototypes V2 🟠</h1>
+    <a class="tile" href="/"><b>Démo enfant (mains-libres)</b><small>mascotte + voix, détection auto de fin de parole, reprise discrète</small></a>
+    <a class="tile" href="/adulte.html"><b>Préface adulte → lancer la séance</b><small>repères de posture, puis QR d'appairage</small></a>
+    <a class="tile" href="/appairage.html"><b>Espace adulte — observation (QR)</b><small>2ᵉ téléphone observateur passif (audio/vidéo en direct)</small></a>
+    <a class="tile" href="/enregistrement.html"><b>Trace audio (prototype)</b><small>enregistrement local, désactivé par défaut, sans envoi</small></a>
+    <a class="tile" href="/atelier.html"><b>Atelier — Cahier de la posture</b><small>chaque phrase de Billy : intention, justification, source</small></a>
+    <a class="tile" href="/choisir.html"><b>Voix de Billy</b><small>écoute des voix candidates</small></a>
+    <p class="note">Pour tester l'observation sur 2 vrais téléphones (caméra), utilise l'adresse
+      <b>https</b> du réseau affichée au démarrage du serveur (certificat auto-signé : accepter l'avertissement).</p>
+  </div>
+</body>
+</html>

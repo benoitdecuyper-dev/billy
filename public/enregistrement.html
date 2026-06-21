@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#ec7a1e" />
+  <title>Billy — trace audio (prototype)</title>
+  <style>
+    :root { --orange:#ec7a1e; --ink:#4f4438; --muted:#998a78; --ok:#6bbf8a; --red:#c23b57; }
+    *{box-sizing:border-box;} body{margin:0;font-family:"Segoe UI",system-ui,sans-serif;color:var(--ink);
+      background:radial-gradient(120% 70% at 50% -10%,#fff,#fff2e3 45%,#ffe7d2);min-height:100dvh;padding:1.5rem;}
+    .wrap{max-width:560px;margin:0 auto;}
+    h1{color:var(--orange);font-size:1.25rem;text-align:center;}
+    .card{background:#fff;border-radius:18px;padding:1.2rem;margin:1rem 0;box-shadow:0 8px 24px rgba(236,122,30,.1);}
+    label{display:flex;gap:.6rem;align-items:flex-start;cursor:pointer;font-size:.95rem;}
+    input[type=checkbox]{margin-top:.2rem;width:1.2rem;height:1.2rem;}
+    button{border:none;border-radius:999px;padding:.9rem 1.4rem;font-weight:700;font-size:1rem;cursor:pointer;}
+    .rec{background:var(--red);color:#fff;} .stop{background:#fff;border:1px solid #e3d6cc;color:var(--ink);}
+    button:disabled{opacity:.45;cursor:default;}
+    .row{display:flex;gap:.6rem;align-items:center;justify-content:center;margin-top:.6rem;}
+    .dot{width:.7rem;height:.7rem;border-radius:50%;background:#ccc;display:inline-block;}
+    .dot.on{background:var(--red);animation:blink 1s infinite;}
+    @keyframes blink{50%{opacity:.3;}}
+    audio{width:100%;margin-top:.6rem;}
+    a.dl{display:inline-block;margin-top:.5rem;color:var(--orange);font-weight:700;}
+    .rgpd{background:#fff5f7;border:1px solid #f3c9d3;border-radius:14px;padding:.8rem 1rem;color:var(--red);font-size:.82rem;line-height:1.5;}
+    .muted{color:var(--muted);font-size:.85rem;}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Trace audio de la séance — prototype 🟠</h1>
+
+    <div class="card rgpd">
+      ⚠️ <b>Données ultra-sensibles (enfant).</b> Désactivé par défaut. Ici, tout reste
+      <b>sur l'appareil</b> : <b>aucun envoi</b>, aucun cloud. Pour la vraie appli : consentement
+      éclairé, chiffrement, conservation limitée, suppression facile — à valider (DPIA).
+    </div>
+
+    <div class="card">
+      <label>
+        <input type="checkbox" id="consent" />
+        <span>J'active l'enregistrement audio de cette séance, en connaissance de cause
+        (l'enregistrement reste sur cet appareil et n'est envoyé nulle part).</span>
+      </label>
+      <div class="row" style="margin-top:1rem">
+        <button class="rec" id="recBtn" disabled>● Démarrer l'enregistrement</button>
+        <button class="stop" id="stopBtn" disabled>Arrêter</button>
+      </div>
+      <div class="row"><span class="dot" id="dot"></span><span class="muted" id="state">prêt</span></div>
+    </div>
+
+    <div class="card" id="result" hidden>
+      <p style="font-weight:600;margin:.2rem 0">Enregistrement terminé (local)</p>
+      <audio id="player" controls></audio>
+      <a class="dl" id="dl" download="seance-billy.webm">⬇️ Télécharger le fichier</a>
+      <button class="stop" id="purge" style="display:block;margin-top:.6rem">🗑️ Supprimer de la mémoire</button>
+    </div>
+  </div>
+
+  <script>
+    const consent = document.getElementById('consent');
+    const recBtn = document.getElementById('recBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const dot = document.getElementById('dot'), stateEl = document.getElementById('state');
+    const result = document.getElementById('result'), player = document.getElementById('player'), dl = document.getElementById('dl');
+    let stream, rec, chunks = [], url;
+
+    consent.addEventListener('change', () => { recBtn.disabled = !consent.checked; });
+
+    recBtn.addEventListener('click', async () => {
+      try { stream = await navigator.mediaDevices.getUserMedia({ audio: true }); }
+      catch { stateEl.textContent = 'Autorise le micro pour la démo.'; return; }
+      chunks = []; rec = new MediaRecorder(stream);
+      rec.ondataavailable = (e) => { if (e.data.size) chunks.push(e.data); };
+      rec.onstop = () => {
+        stream.getTracks().forEach((t) => t.stop());
+        const blob = new Blob(chunks, { type: 'audio/webm' });
+        url = URL.createObjectURL(blob); player.src = url; dl.href = url;
+        result.hidden = false;
+      };
+      rec.start(); dot.classList.add('on'); stateEl.textContent = 'enregistrement en cours…';
+      recBtn.disabled = true; stopBtn.disabled = false; consent.disabled = true;
+    });
+
+    stopBtn.addEventListener('click', () => {
+      if (rec && rec.state !== 'inactive') rec.stop();
+      dot.classList.remove('on'); stateEl.textContent = 'arrêté'; stopBtn.disabled = true;
+    });
+
+    document.getElementById('purge').addEventListener('click', () => {
+      if (url) URL.revokeObjectURL(url);
+      player.removeAttribute('src'); player.load(); chunks = []; result.hidden = true;
+      recBtn.disabled = !consent.checked; consent.disabled = false; stateEl.textContent = 'supprimé';
+    });
+  </script>
+</body>
+</html>

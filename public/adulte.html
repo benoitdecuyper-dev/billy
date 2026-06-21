@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#ec7a1e" />
+  <title>Billy — préface pour l'adulte</title>
+  <style>
+    :root { --orange:#ec7a1e; --orange-l:#ffb15c; --ink:#4f4438; --muted:#998a78; --ok:#6bbf8a; --red:#c23b57; }
+    *{box-sizing:border-box;} body{margin:0;font-family:"Segoe UI",system-ui,sans-serif;color:var(--ink);
+      background:radial-gradient(120% 70% at 50% -10%,#fff,#fff2e3 45%,#ffe7d2);min-height:100dvh;padding:1.5rem 1.2rem 3rem;}
+    .wrap{max-width:600px;margin:0 auto;}
+    header{text-align:center;}
+    .billy{width:120px;height:120px;margin:0 auto;animation:breathe 4s ease-in-out infinite;}
+    @keyframes breathe{0%,100%{transform:translateY(0);}50%{transform:translateY(-5px);}}
+    h1{color:var(--orange);font-size:1.35rem;margin:.4rem 0 0;}
+    .sub{color:var(--muted);margin-top:.2rem;font-size:.92rem;}
+    .step{background:#fff;border-radius:18px;padding:1.1rem 1.3rem;margin:1rem 0;box-shadow:0 8px 24px rgba(236,122,30,.1);}
+    .step h2{font-size:1.05rem;margin:.1rem 0 .6rem;display:flex;gap:.5rem;align-items:center;}
+    .num{display:inline-flex;width:1.7rem;height:1.7rem;border-radius:50%;background:var(--orange);color:#fff;
+      align-items:center;justify-content:center;font-size:.9rem;font-weight:800;}
+    ul{margin:.3rem 0;padding-left:1.1rem;} li{margin:.3rem 0;line-height:1.45;}
+    .say{color:var(--ok);font-weight:600;} .dont{color:var(--red);font-weight:600;}
+    .cta{display:block;width:100%;border:none;text-align:center;text-decoration:none;
+      background:linear-gradient(180deg,var(--orange-l),var(--orange));color:#fff;font-size:1.1rem;font-weight:800;
+      padding:1.1rem;border-radius:999px;box-shadow:0 12px 26px rgba(236,122,30,.4);margin-top:1.2rem;}
+    .warn{background:#fff5f7;border:1px solid #f3c9d3;border-radius:14px;padding:.8rem 1rem;color:var(--red);font-size:.85rem;}
+    .num119{font-weight:800;color:var(--orange);}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <img class="billy" src="/assets/billy.png" alt="Billy" />
+      <h1>Avant de commencer</h1>
+      <p class="sub">Quelques repères pour bien accompagner votre enfant. (1 minute)</p>
+    </header>
+
+    <div class="step">
+      <h2><span class="num">1</span> Le rôle de Billy — et le vôtre</h2>
+      <ul>
+        <li>Billy <b>met en confiance</b> votre enfant et <b>l'écoute</b>, sans jamais l'interroger.</li>
+        <li>Billy <b>n'est pas un juge, ni un médecin, ni une preuve</b> : il aide à repérer et il oriente.</li>
+        <li>Votre rôle : <b>écouter, croire, rassurer</b> — et laisser le recueil aux professionnels.</li>
+      </ul>
+    </div>
+
+    <div class="step">
+      <h2><span class="num">2</span> Si votre enfant se confie</h2>
+      <ul>
+        <li><span class="say">« Je te crois. »</span></li>
+        <li><span class="say">« Ce n'est pas ta faute. »</span></li>
+        <li><span class="say">« Tu as bien fait de m'en parler. »</span></li>
+        <li>Restez <b>calme</b> : votre sang-froid rassure et sécurise l'enfant.</li>
+      </ul>
+    </div>
+
+    <div class="step">
+      <h2><span class="num">3</span> À éviter absolument</h2>
+      <ul>
+        <li><span class="dont">Ne posez pas de questions</span> qui soufflent la réponse (« est-ce que X t'a fait… ? »).</li>
+        <li><span class="dont">Ne faites pas répéter</span> votre enfant, ne le pressez pas.</li>
+        <li><span class="dont">Ne promettez pas le secret</span> ; ne confrontez pas la personne soupçonnée.</li>
+        <li><span class="dont">Ne minimisez pas</span> (« ce n'est pas grave »).</li>
+      </ul>
+    </div>
+
+    <div class="step">
+      <h2><span class="num">4</span> Que faire ensuite</h2>
+      <ul>
+        <li>Au moindre doute, appelez le <span class="num119">119</span> (gratuit, 24h/24, confidentiel).</li>
+        <li>Danger immédiat : <b>17 / 112</b>. Urgence médicale : <b>15</b>.</li>
+        <li>Parlez-en à un professionnel (médecin, psychologue, UAPED). <b>Ne restez pas seul·e.</b></li>
+        <li>Billy vous remettra un <b>rapport de séance</b> et une <b>fiche « que faire »</b>.</li>
+      </ul>
+    </div>
+
+    <div class="step warn">
+      ⚠️ Vous tenez le téléphone ; votre enfant interagit à la voix, mains-libres. Vous pourrez
+      suivre la séance sur un 2ᵉ appareil, mais <b>sans intervenir</b> (pour ne pas influencer sa parole).
+    </div>
+
+    <a class="cta" href="/appairage.html">J'ai compris — lancer la séance 🌰</a>
+  </div>
+</body>
+</html>

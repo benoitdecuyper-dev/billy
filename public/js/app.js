@@ -52,6 +52,14 @@
 
   function setState(s) { app.dataset.state = s; }
 
+  // --- Continuité « silencieuse » (BILLY-E15) : on ne mémorise QUE l'étape, jamais le contenu ---
+  const NAV_KEY = 'billy_nav';
+  function saveNav() { try { localStorage.setItem(NAV_KEY, JSON.stringify({ phaseIdx: idx, ts: Date.now() })); } catch {} }
+  function loadNavIdx() {
+    try { const n = JSON.parse(localStorage.getItem(NAV_KEY) || '{}'); return (n.phaseIdx > 0 && n.phaseIdx < SCRIPT.length) ? n.phaseIdx : 0; } catch { return 0; }
+  }
+  function clearNav() { try { localStorage.removeItem(NAV_KEY); } catch {} }
+
   // --- Garde-fou allow-list (mime src/safety/) ---
   const _canon = (s) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
     .replace(/[’]/g, "'").replace(/[^a-z0-9' ]/g, ' ').replace(/\s+/g, ' ').trim();
@@ -145,6 +153,7 @@
   // --- Déroulé ---
   async function runStep() {
     if (idx >= SCRIPT.length) { finish(); return; }
+    saveNav(); // navigation seulement (l'étape), jamais le contenu
     const step = SCRIPT[idx];
     await speak(step);
     if (step.type === 'ask') { followupsLeft = step.followups || 0; childTurn(); }
@@ -156,7 +165,7 @@
     statusEl.textContent = 'Démonstration terminée 🌸';
     doneBtn.hidden = true; stopBtn.hidden = true;
     micLabel.textContent = 'Revenir au début'; micBtn.disabled = false;
-    started = false; idx = 0;
+    started = false; idx = 0; clearNav();
   }
 
   async function pause() {
@@ -172,9 +181,12 @@
 
   micBtn.addEventListener('click', () => {
     if (started) return;
-    started = true; idx = 0; micBtn.disabled = true; stopBtn.hidden = false;
-    runStep();
+    started = true; idx = loadNavIdx(); micBtn.disabled = true; stopBtn.hidden = false;
+    runStep(); // reprend à l'étape mémorisée (Billy ne fait JAMAIS référence à ce qui a été dit avant)
   });
+
+  // Reprise discrète : si une étape était mémorisée, on le signale sobrement (sans rappeler de contenu)
+  if (loadNavIdx() > 0) { micLabel.textContent = 'Reprendre'; statusEl.textContent = 'On peut reprendre où on s’était arrêtés.'; }
 
   if (!canListen) statusEl.textContent = 'Astuce : la reconnaissance vocale marche sur Chrome/Edge ; sinon, tu pourras écrire.';
 })();
