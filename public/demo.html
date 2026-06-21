@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#ec7a1e" />
+  <title>Billy</title>
+  <link rel="stylesheet" href="/css/styles.css" />
+</head>
+<body>
+  <main class="app" data-state="idle" role="main">
+
+    <!-- Écran de départ : c'est l'ADULTE qui lance, puis donne le téléphone à l'enfant. -->
+    <div class="start" id="start">
+      <img class="start__billy" src="/assets/billy.png" alt="Billy" />
+      <p class="start__txt">Installez l'enfant confortablement, puis lancez et donnez-lui le téléphone.</p>
+      <button class="start__btn" id="startBtn">Commencer 🌰</button>
+      <p class="start__legal">Billy est un personnage. En cas de souci, un adulte peut appeler le <strong>119</strong> (gratuit, 24h/24).</p>
+    </div>
+
+    <!-- Écran enfant : Billy en grand, rien d'autre (pas de bouton, pas de texte). -->
+    <figure class="billy" id="billy" aria-label="Billy l'écureuil">
+      <span class="ring"></span><span class="ring"></span><span class="ring"></span>
+      <img class="frame frame-closed" src="/assets/billy.png" alt="Billy" />
+      <img class="frame frame-talk" src="/assets/billy-talk.png" alt="" aria-hidden="true" />
+      <img class="frame frame-gym" src="/assets/billy-gym.png" alt="" aria-hidden="true" />
+      <img class="frame frame-rugby" src="/assets/billy-rugby.png" alt="" aria-hidden="true" />
+    </figure>
+
+  </main>
+
+  <script src="/js/app.js"></script>
+</body>
+</html>

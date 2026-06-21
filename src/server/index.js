@@ -64,6 +64,25 @@ async function handler(req, res) {
     return;
   }
 
+  // Voix en direct (Text-to-Speech). Prête pour ElevenLabs ; sans clé -> 501 (le client bascule
+  // sur la voix du navigateur). En prod : définir ELEVENLABS_API_KEY + ELEVENLABS_VOICE_ID.
+  if (url.pathname === '/api/tts') {
+    const text = (url.searchParams.get('text') || '').slice(0, 500);
+    const key = process.env.ELEVENLABS_API_KEY, voice = process.env.ELEVENLABS_VOICE_ID;
+    if (!key || !voice || !text) { res.writeHead(501, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ error: 'no_tts' })); return; }
+    try {
+      const up = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voice}`, {
+        method: 'POST',
+        headers: { 'xi-api-key': key, 'Content-Type': 'application/json', Accept: 'audio/mpeg' },
+        body: JSON.stringify({ text, model_id: 'eleven_multilingual_v2', voice_settings: { stability: 0.45, similarity_boost: 0.8 } }),
+      });
+      if (!up.ok) { res.writeHead(502); res.end('tts upstream'); return; }
+      const buf = Buffer.from(await up.arrayBuffer());
+      res.writeHead(200, { 'Content-Type': 'audio/mpeg', 'Cache-Control': 'no-store' }); res.end(buf);
+    } catch { res.writeHead(502); res.end('tts error'); }
+    return;
+  }
+
   // Sert le VRAI module anti-suggestion (testé) au prototype temps réel.
   if (url.pathname === '/lib/antiSuggestion.js') {
     try {

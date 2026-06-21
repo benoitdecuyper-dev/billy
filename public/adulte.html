@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="theme-color" content="#ec7a1e" />
   <title>Billy — préface pour l'adulte</title>
+  <link rel="manifest" href="/manifest.json" />
   <style>
     :root { --orange:#ec7a1e; --orange-l:#ffb15c; --ink:#4f4438; --muted:#998a78; --ok:#6bbf8a; --red:#c23b57; }
     *{box-sizing:border-box;} body{margin:0;font-family:"Segoe UI",system-ui,sans-serif;color:var(--ink);
@@ -96,7 +97,10 @@
       suivre la séance sur un 2ᵉ appareil, mais <b>sans intervenir</b> (pour ne pas influencer sa parole).
     </div>
 
-    <a class="cta" href="/appairage.html">J'ai compris — lancer la séance 🌰</a>
+    <a class="cta" href="/session.html">J'ai compris — donner Billy à l'enfant 🌰</a>
+    <p style="text-align:center;margin:.8rem 0 0;">
+      <a href="/appairage.html" style="color:var(--muted);font-size:.85rem;">Option : suivre la séance depuis un 2ᵉ téléphone (QR)</a>
+    </p>
   </div>
 
   <script>
@@ -115,6 +119,7 @@
       if (s.motif) { const el = document.querySelector(`input[value="${s.motif}"]`); if (el) el.checked = true; }
       if (s.note) note.value = s.note;
     } catch {}
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});
   </script>
 </body>
 </html>
