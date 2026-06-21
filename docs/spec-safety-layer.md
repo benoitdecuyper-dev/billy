@@ -5,10 +5,18 @@
 > pédopsychiatre) avant tout usage réel. Les lexiques (tabou, personnes, lieux) sont des
 > **données de configuration** maintenues et signées par les pros, pas figées dans le code.
 
+> **Mise à jour post red-team (cf. `docs/redteam-rapport-V1.md`, F-12).** Le rempart runtime
+> n'est PAS la liste noire de règles (une blacklist ne peut garantir « 0 faux négatif »), mais
+> une **allow-list** : en Option A, l'espace de sortie de Billy est fini (le répertoire signé),
+> donc on valide par **identité au répertoire** (`evaluate`/`evaluateOutput`). Les 12+ règles
+> (`audit`) servent de **défense en profondeur et de lint du répertoire**. Le code reflète cela.
+
 ## 1. Rôle et garanties
 
-La couche sûreté est le **dernier rempart** entre le moteur de dialogue et la voix de Billy.
-Elle s'applique à **tout texte avant TTS**, y compris les répliques du répertoire fermé.
+Le **rempart runtime** (`evaluate`) est une **allow-list** : un texte ne part au TTS que s'il
+est **identique à une réplique du répertoire signé** (ou une cued-invitation dont le mot vient
+de l'enfant). Tout le reste est `BLOCK`. La couche `audit` (12+ règles) s'applique en
+**défense secondaire** et pour **auditer le répertoire** avant signature.
 
 - **Verdict binaire** : `PASS` ou `BLOCK`, avec `ruleId` + `reason` (pour audit et tests).
 - **Fail-closed** : toute erreur, ambiguïté ou exception ⇒ `BLOCK`, et le moteur se replie sur

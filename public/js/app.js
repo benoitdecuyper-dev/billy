@@ -24,15 +24,23 @@
     { type: 'say', text: "Deux : si tu ne sais pas, tu peux me dire « je ne sais pas ». Ce n'est pas grave." },
     { type: 'say', text: "Trois : on parle seulement de ce qui s'est vraiment passé. On ne devine pas." },
     { type: 'ask', text: "Pour commencer tout doucement, raconte-moi ta journée d'hier. Du réveil jusqu'au moment où tu t'es couché. Prends ton temps.", followups: 2 },
-    { type: 'say', text: "Merci de m'avoir raconté tout ça. C'était chouette de t'écouter. On s'arrête là pour la démo." },
+    { type: 'say', text: "Merci de m'avoir parlé. On s'arrête là pour la démonstration." },
   ];
 
   // Relances ouvertes neutres (seules relances autorisées).
   const FOLLOWUPS = ["Et après ?", "Dis-m'en plus.", "Et ensuite, qu'est-ce qui s'est passé ?"];
   // Relance unique en cas de silence (invitation ouverte, jamais une question fermée).
   const SILENCE_PROMPT = "Prends ton temps. Je t'écoute.";
+  const STOP_LINE = "D'accord, on s'arrête. Tu peux retrouver un grand en qui tu as confiance.";
 
-  const SILENCE_MS = 10000; // délai généreux avant l'unique relance de silence
+  const SILENCE_MS = 8000; // délai généreux avant l'unique relance de silence (aligné spec)
+
+  // --- Garde-fou allow-list (mime src/safety/antiSuggestion.js en prod : 100% des sorties validées) ---
+  const _canon = (s) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .replace(/[’]/g, "'").replace(/[^a-z0-9' ]/g, ' ').replace(/\s+/g, ' ').trim();
+  const APPROVED = new Set([...SCRIPT.map((s) => s.text), ...FOLLOWUPS, SILENCE_PROMPT, STOP_LINE].map(_canon));
+  // Fail-closed : toute réplique hors répertoire est remplacée par une invitation neutre sûre.
+  function guard(text) { return APPROVED.has(_canon(text)) ? text : "Et après ?"; }
 
   // --- DOM ---
   const app = document.querySelector('.app');
@@ -72,6 +80,7 @@
   // --- Billy parle (TTS) ---
   function speak(text) {
     return new Promise((resolve) => {
+      text = guard(text); // rempart : aucune sortie hors répertoire signé
       subtitle.textContent = text;
       setState('speaking');
       statusEl.textContent = 'Billy parle…';
@@ -177,7 +186,7 @@
     setState('idle');
     subtitle.textContent = subtitle.textContent || '🌼';
     statusEl.textContent = 'Démo terminée.';
-    micLabel.textContent = 'Recommencer';
+    micLabel.textContent = 'Revenir au début';
     micBtn.disabled = false;
     stopBtn.hidden = true;
     started = false;
@@ -193,7 +202,7 @@
     setState('idle');
     subtitle.textContent = "D'accord, on s'arrête. Tu peux retrouver un grand en qui tu as confiance.";
     statusEl.textContent = '';
-    micLabel.textContent = 'Recommencer';
+    micLabel.textContent = 'Revenir au début';
     micBtn.disabled = false;
     stopBtn.hidden = true;
     started = false;

@@ -1,188 +1,185 @@
 /*
- * Couche sûreté — filtre anti-suggestion (implémentation de RÉFÉRENCE).
+ * Couche sûreté — filtre anti-suggestion (implémentation de RÉFÉRENCE, V2 post red-team).
  *
- * ⚠️ Heuristiques à VALIDER/compléter par des professionnels avant tout usage réel
- * (cf. docs/spec-safety-layer.md). Les lexiques ci-dessous sont des exemples minimaux :
- * en production ils proviennent d'une CONFIG signée par les pros, hors de ce fichier.
+ * Architecture (cf. docs/redteam-rapport-V1.md, finding F-12) :
+ *   En Option A, Billy ne génère pas librement : ses sorties proviennent d'un RÉPERTOIRE
+ *   FERMÉ et SIGNÉ. Le rempart runtime avant TTS est donc une ALLOW-LIST :
+ *     evaluate(text) PASS  <=>  text est identique à une réplique du répertoire signé
+ *                                (ou une cued-invitation dont le mot vient de l'enfant).
+ *   audit() = défense en profondeur + LINT du répertoire (les 12+ règles anti-suggestion).
+ *   Une blacklist ne peut garantir « 0 faux négatif » ; une allow-list sur un espace fini, oui.
  *
- * Contrat : evaluate(text, sessionState) -> { decision: 'PASS'|'BLOCK', ruleId, reason }
- * Fail-closed : toute exception => BLOCK.
+ * ⚠️ Brouillon : lexiques et répertoire à VALIDER/SIGNER par les professionnels.
+ * Fail-closed partout : doute, exception, hors-répertoire => BLOCK.
  */
 
 'use strict';
 
-// --- Lexiques d'exemple (à remplacer par la config validée) ---
-const TABOO = [
-  // parties intimes
-  'zizi', 'zezette', 'zézette', 'sexe', 'pénis', 'penis', 'vagin', 'fesses', 'fesse',
-  // actes de violence / à caractère sexuel
-  'toucher', 'touché', 'touche', 'frapper', 'frappé', 'taper', 'tapé', 'caresser', 'caressé',
-  'embrasser', 'déshabiller', 'déshabillé',
-];
-const PERSONS = [
-  'papa', 'maman', 'tonton', 'tata', 'pépé', 'pepe', 'mémé', 'meme', 'mémère',
-  'monsieur', 'dame', 'voisin', 'voisine', 'nounou', 'maître', 'maîtresse', 'docteur',
-];
-const PLACES = [
-  'chambre', 'lit', 'salle de bain', 'douche', 'baignoire', 'toilettes', 'cave',
-  'garage', 'voiture', 'grenier', 'canapé',
-];
-// Noms propres autorisés (Billy se nomme elle-même).
-const ALLOWED_PROPER = new Set(['billy']);
+/* --- Normalisation --- */
+function strip(s) {
+  return String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .replace(/[’]/g, "'").replace(/\s+/g, ' ').trim();
+}
+// Forme canonique pour l'allow-list & le français légitime : tirets -> espaces (« raconte-moi » -> « raconte moi »).
+function canon(s) { return strip(s).replace(/[^a-z0-9' ]/g, ' ').replace(/\s+/g, ' ').trim(); }
+// Pour les regex d'audit : on garde la ponctuation utile (?), tirets -> espaces.
+function nstrict(s) { return strip(s).replace(/[-]/g, ' ').replace(/\s+/g, ' ').trim(); }
+// Forme dédiée à la détection des termes tabou : recolle l'obfuscation (« tou-ché » -> « touche », « z i z i » -> « zizi »).
+function tabooForm(s) {
+  let t = strip(s).replace(/([a-z0-9])[-._]([a-z0-9])/g, '$1$2');
+  t = t.replace(/([a-z0-9])[-._]([a-z0-9])/g, '$1$2');
+  t = t.replace(/\b([a-z0-9])(?:\s+([a-z0-9])\b)+/g, (m) => m.replace(/\s+/g, ''));
+  return t;
+}
+function escapeRe(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+function hasWord(haystack, w) { return new RegExp(`\\b${escapeRe(canon(w))}\\b`).test(haystack); }
 
-// --- Outils ---
-function normalize(s) {
-  return String(s)
-    .toLowerCase()
-    .normalize('NFD').replace(/[̀-ͯ]/g, '') // enlève les accents
-    .replace(/[’]/g, "'")
-    .replace(/\s+/g, ' ')
-    .trim();
-}
-function tokens(s) {
-  return normalize(s).split(/[^a-z0-9']+/).filter(Boolean);
-}
-function lexiconHas(sessionState, word) {
-  const lex = sessionState && sessionState.childLexicon;
+function lexiconHas(state, word) {
+  const lex = state && state.childLexicon;
   if (!lex) return false;
-  const w = normalize(word);
-  // childLexicon peut être un Set de mots déjà normalisés
+  const w = canon(word);
   if (typeof lex.has === 'function') return lex.has(w);
-  if (Array.isArray(lex)) return lex.map(normalize).includes(w);
+  if (Array.isArray(lex)) return lex.map(canon).includes(w);
   return false;
 }
-const STOPWORDS = new Set(tokens(
-  "le la les un une des de du d a au aux et ou ou' mais donc or ni car que qui quoi dont " +
-  "ou je tu il elle on nous vous ils elles me te se ce cet cette ces mon ton son ma ta sa " +
-  "mes tes ses notre votre leur a as ai est es sont suis etes etais etait dans sur sous avec " +
-  "pour par en y ne pas plus moins tres bien tout toute tous toutes ca cela c'est s'est " +
-  "raconte dis moi me parle parler chose quelque ton journee hier prends temps"
-));
+
+/* --- Répertoire signé (allow-list) : source = docs/repertoire-formulations_V1.md --- */
+const APPROVED_RAW = [
+  "Coucou, moi c'est Billy. Je suis un personnage sur ton téléphone, je ne suis pas une vraie personne. Je suis là juste pour t'écouter.",
+  "Coucou, moi c'est Billy. Je suis un personnage sur ton téléphone, je ne suis pas une vraie personne.",
+  "Je suis là juste pour t'écouter. Ici, tu peux parler avec tes mots à toi. Il n'y a pas de bonne ou de mauvaise réponse.",
+  "Ici, tu peux parler de ce que tu veux, avec tes mots à toi. Il n'y a pas de bonne ou de mauvaise réponse.",
+  "Si à un moment tu veux qu'on s'arrête, tu me le dis, et on arrête. C'est toi qui décides.",
+  "D'accord, on s'arrête. Tu peux retrouver un grand en qui tu as confiance.",
+  "Avant qu'on commence, je te dis trois petites choses.",
+  "Avant de commencer, trois petites choses. Un : si je me trompe, tu peux me corriger.",
+  "Un : si je me trompe sur quelque chose, tu peux me corriger.",
+  "Deux : si tu ne sais pas, tu peux me dire « je ne sais pas ». Ce n'est pas grave.",
+  "Trois : on parle seulement de ce qui s'est vraiment passé. On ne fait pas semblant, on ne devine pas.",
+  "Trois : on parle seulement de ce qui s'est vraiment passé. On ne devine pas.",
+  "Tu veux bien me redire, avec tes mots, ce qu'on fait si tu ne sais pas quelque chose ?",
+  "Voilà, c'est ça.",
+  "Pour commencer tout doucement, raconte-moi ta journée d'hier. Du réveil jusqu'au moment où tu t'es couché. Prends ton temps.",
+  "Pour commencer tout doucement, raconte-moi ta journée d'hier. Prends ton temps.",
+  "Est-ce qu'il y a quelque chose qui t'embête ou t'inquiète, et dont tu voudrais me parler ?",
+  "Comment tu te sens en ce moment ?",
+  "Et après ?",
+  "Et ensuite, qu'est-ce qui s'est passé ?",
+  "Dis-m'en plus.",
+  "Raconte-moi.",
+  "Prends ton temps. Je t'écoute.",
+  "Tu as bien fait de m'en parler. Tu n'as rien fait de mal.",
+  "Merci de m'avoir parlé, c'était courageux. Maintenant, des grandes personnes dont c'est le métier vont pouvoir t'aider.",
+  "Merci de m'avoir raconté tout ça. C'était chouette de t'écouter.",
+];
+const ALLOWED = new Set(APPROVED_RAW.map(canon));
+// Interrogatives/relances OUVERTES approuvées : seules interrogatives tolérées par l'audit.
+const OPEN_QUESTIONS = new Set([
+  "Est-ce qu'il y a quelque chose qui t'embête ou t'inquiète, et dont tu voudrais me parler ?",
+  "Comment tu te sens en ce moment ?",
+  "Et après ?",
+  "Et ensuite, qu'est-ce qui s'est passé ?",
+  "Tu veux bien me redire, avec tes mots, ce qu'on fait si tu ne sais pas quelque chose ?",
+].map(canon));
+
+/* --- Lexiques (exemples ; vraie liste = config signée par les pros) --- */
+const TABOO = ['zizi','zezette','quequette','sexe','penis','vagin','fesse','fesses','foufoune','nenes',
+  'toucher','touche','frapper','taper','caresser','embrasser','lecher','sucer','deshabiller','bizou'];
+const PERSONS = ['papa','maman','tonton','tata','pepe','meme','memere','monsieur','dame','voisin','voisine',
+  'nounou','maitre','maitresse','beau pere','grand frere','cousin','moniteur','educateur','prof','oncle',
+  'parrain','marraine','frere','soeur'];
+const NAMES = ['kevin','ed','lucas','hugo','leo','tom','nathan','jules','enzo','noah','adam','sacha'];
+const PLACES = ['chambre','lit','salle de bain','douche','baignoire','toilettes','cave','garage','voiture',
+  'grenier','canape','placard','tente','piscine','vestiaire','bureau','sous sol','jardin','classe'];
+const ALLOWED_PROPER = new Set(['billy']);
 
 function block(ruleId, reason) { return { decision: 'BLOCK', ruleId, reason }; }
 const PASS = { decision: 'PASS', ruleId: null, reason: null };
 
-// --- Règles individuelles (chacune renvoie un BLOCK ou null) ---
-
-// 1. Lexique tabou hors-enfant
-function r1(n, st) {
-  for (const term of TABOO) {
-    const t = normalize(term);
-    if (n.includes(t) && !lexiconHas(st, t)) return block('TABOO_LEXICON', `terme tabou non introduit par l'enfant : "${term}"`);
-  }
-  return null;
-}
-// 2. Nomination d'auteur hors-enfant (+ prénom : mot capitalisé hors début de phrase, sur texte brut)
-function r2(n, st, raw) {
-  for (const p of PERSONS) {
-    const t = normalize(p);
-    if (new RegExp(`\\b${t}\\b`).test(n) && !lexiconHas(st, t)) return block('NAME_PERPETRATOR', `personne nommée non introduite par l'enfant : "${p}"`);
-  }
-  // prénom potentiel : Majuscule en milieu de phrase
-  const m = String(raw).match(/(?<!^)(?<![.?!]\s)\b([A-ZÀ-Ý][a-zà-ÿ]{2,})\b/g);
-  if (m) {
-    for (const w of m) {
-      if (ALLOWED_PROPER.has(normalize(w))) continue;
-      if (!lexiconHas(st, w)) return block('NAME_PERPETRATOR', `nom propre possible non introduit par l'enfant : "${w}"`);
-    }
-  }
-  return null;
-}
-// 3. Nomination de lieu hors-enfant
-function r3(n, st) {
-  for (const pl of PLACES) {
-    const t = normalize(pl);
-    if (n.includes(t) && !lexiconHas(st, t)) return block('NAME_PLACE', `lieu non introduit par l'enfant : "${pl}"`);
-  }
-  return null;
-}
-// 4. Question fermée oui/non
-function r4(n) {
-  if (/\best ce que\b/.test(n)) return block('CLOSED_YESNO', 'tournure fermée "est-ce que…"');
-  if (/,\s*(hein|non|ok|d'accord)\s*\??$/.test(n)) return block('CLOSED_YESNO', 'question fermée avec tag');
-  // inversion sujet-verbe attendant oui/non : "as-tu", "avait-il", "etait-ce"...
-  if (/\b\w+-(tu|toi|il|elle|on|ils|elles|ce)\b/.test(n) && /\?$/.test(n.trim())) return block('CLOSED_YESNO', 'inversion sujet-verbe fermée');
-  return null;
-}
-// 5. Tag suggestif de confirmation
-function r5(n) {
-  if (/(c'est bien ca|c'est ca|pas vrai|n'est ce pas|tu vois ce que je veux dire)\s*\??/.test(n)) return block('SUGGESTIVE_TAG', 'tag de confirmation suggestif');
-  return null;
-}
-// 6. Présupposition d'un fait non établi
-function r6(n) {
-  if (/\bquand (il|elle|on|ils|elles) (t'|t |te |vous )?(a|ont|avait)\b/.test(n)) return block('PRESUPPOSITION', 'présuppose un événement ("quand il t\'a…")');
-  if (/\bla fois ou\b/.test(n) || /\bapres qu'?(il|elle|on)\b/.test(n) || /\bdepuis qu'?(il|elle|on)\b/.test(n)) return block('PRESUPPOSITION', 'présuppose un événement passé');
-  return null;
-}
-// 7. Choix forcé "X ou Y ?"
-function r7(n) {
-  if (/\b[a-z']+\s+ou\s+[a-z']+\b/.test(n) && /\?/.test(n)) return block('FORCED_CHOICE', 'choix forcé "X ou Y ?"');
-  return null;
-}
-// 8. Pression / insistance
-function r8(n) {
-  if (/(tu es sur|t'es sur|reflechis bien|essaie de te rappeler|fais un effort|concentre toi|allez dis moi|tu peux me le dire)/.test(n)) return block('PRESSURE', 'pression / insistance');
-  return null;
-}
-// 9. Répétition d'une question déjà posée
-function r9(n, st) {
-  const asked = (st && st.askedQuestions) || [];
-  const norm = n.replace(/[^a-z0-9' ]/g, '').trim();
-  if (norm && asked.map(q => normalize(q).replace(/[^a-z0-9' ]/g, '').trim()).includes(norm)) {
-    return block('REPEAT_QUESTION', 'question déjà posée dans la session');
-  }
-  return null;
-}
-// 10. Récompense conditionnée
-function r10(n) {
-  if (/\bsi tu (me |m'|nous )?(dis|racontes|reponds|parles)\b.*(alors|je te|tu auras|on (ira|fera)|un (bonbon|cadeau|bisou))/.test(n)) return block('CONDITIONAL_REWARD', 'récompense conditionnée à une réponse');
-  if (/\b(bonbon|cadeau|recompense)\b.*\bsi tu\b/.test(n)) return block('CONDITIONAL_REWARD', 'récompense conditionnée');
-  return null;
-}
-// 11. Reformulation enrichie : relance "citée" introduisant un détail absent du dernier énoncé enfant
-function r11(n, st) {
-  const cued = n.match(/\btu (as|m'as|me) (dit|parle|parlais|racontes?|raconte) (de |du |des |d'|que |qu'|sur )?(.+)/);
-  if (!cued) return null;
-  const span = cued[4] || '';
-  const last = normalize((st && st.lastChildUtterance) || '');
-  const lastSet = new Set(tokens(last));
-  for (const w of tokens(span)) {
-    if (STOPWORDS.has(w) || w.length < 3) continue;
-    if (!lastSet.has(w) && !lexiconHas(st, w)) {
-      return block('ENRICHED_REFORMULATION', `relance "citée" introduit un mot non dit par l'enfant : "${w}"`);
-    }
-  }
-  return null;
-}
-// 12. Étiquetage émotionnel / évaluatif
-function r12(n) {
-  if (/(ca a du|ca devait|ca a ete) (te |t')?/.test(n)) return block('EMOTIONAL_LABEL', 'impose un vécu ("ça a dû te…")');
-  if (/(c'etait|ca a ete|ca devait etre) (horrible|affreux|effrayant|terrible|grave|nul|mechant|degoutant|terrifiant)/.test(n)) return block('EMOTIONAL_LABEL', 'qualification émotionnelle imposée');
-  if (/\btu as eu (peur|mal|honte)\b/.test(n)) return block('EMOTIONAL_LABEL', 'affirme une émotion de l\'enfant');
-  return null;
-}
-
-const RULES = [r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12];
-
-/**
- * Évalue un texte candidat avant TTS. Fail-closed.
- * @param {string} text
- * @param {{childLexicon?: Set<string>|string[], lastChildUtterance?: string, askedQuestions?: string[]}} [sessionState]
- * @returns {{decision:'PASS'|'BLOCK', ruleId:string|null, reason:string|null}}
- */
-function evaluate(text, sessionState = {}) {
+/* --- REMPART PRINCIPAL : allow-list --- */
+function evaluateOutput(text, state = {}) {
   try {
-    if (typeof text !== 'string' || !text.trim()) return block('ERROR', 'texte vide ou invalide');
-    const n = normalize(text);
-    for (const rule of RULES) {
-      const verdict = rule.length >= 3 ? rule(n, sessionState, text) : rule(n, sessionState);
-      if (verdict) return verdict;
+    if (typeof text !== 'string' || !text.trim()) return block('EMPTY', 'texte vide ou invalide');
+    const c = canon(text);
+    if (ALLOWED.has(c)) return PASS;
+    const m = c.match(/^tu as parle de (.+?) raconte moi ca$/);
+    if (m) {
+      const slot = m[1].trim();
+      if (slot && lexiconHas(state, slot) && !TABOO.some((t) => hasWord(tabooForm(slot), t))) return PASS;
+      return block('CUED_SLOT', `cued-invitation refusée : "${slot}"`);
     }
+    return block('NOT_IN_REPERTOIRE', 'sortie hors répertoire signé');
+  } catch (e) {
+    return block('ERROR', 'exception allow-list : ' + (e && e.message));
+  }
+}
+
+/* --- DÉFENSE SECONDAIRE / LINT : les règles anti-suggestion --- */
+function audit(text, state = {}) {
+  try {
+    if (typeof text !== 'string' || !text.trim()) return block('EMPTY', 'texte vide ou invalide');
+    const n = nstrict(text);
+    const tf = tabooForm(text);
+    const c = canon(text);
+    const isApprovedOpen = OPEN_QUESTIONS.has(c);
+
+    // 1. Tabou — jamais débloqué par le lexique (un STT faillible ne doit pas autoriser Billy à nommer l'acte)
+    for (const t of TABOO) if (hasWord(tf, t)) return block('TABOO_LEXICON', `terme tabou : "${t}"`);
+    // 2. Auteur (rôle + prénom connu), insensible à la casse
+    for (const p of [...PERSONS, ...NAMES]) {
+      if (hasWord(n, p) && !ALLOWED_PROPER.has(p) && !lexiconHas(state, p)) return block('NAME_PERPETRATOR', `personne nommée : "${p}"`);
+    }
+    // 3. Lieu
+    for (const pl of PLACES) if (hasWord(n, pl) && !lexiconHas(state, pl)) return block('NAME_PLACE', `lieu nommé : "${pl}"`);
+    // 13. Promesse de secret
+    if (/(entre nous|notre (petit )?secret|c'est notre secret|tu (ne )?le dis a personne|ne le repete a personne|garde (le |ca )?pour toi)/.test(n))
+      return block('PROMISE_SECRET', 'promesse de secret');
+    // 6. Présupposition (AVANT la règle question : "ce qu'il t'a fait" prime sur "fermée")
+    if (/\bquand (il|elle|on|ils|elles) (t'|t |te |vous )?(a|ont|avait)\b/.test(n)
+      || /\bce qu(e|') ?(il|elle|on) (t'|t |te |vous )?a\b/.test(n)
+      || /\bqu(e|')?est ce qu(e|') ?(il|elle|on) (t'|t |te )?a\b/.test(n)
+      || /\bla fois ou\b/.test(n) || /\b(apres|depuis) qu'?(il|elle|on)\b/.test(n))
+      return block('PRESUPPOSITION', 'présuppose un fait non établi');
+    // 4. Toute interrogative non whitelistée comme ouverte
+    const isQuestion = /\?/.test(text) || /\best ce que\b/.test(n) || /\b\w+-(tu|toi|il|elle|on|ils|elles|ce)\b/.test(text.toLowerCase());
+    if (isQuestion && !isApprovedOpen) return block('CLOSED_YESNO', 'question fermée / non whitelistée');
+    // 5. Tag suggestif
+    if (/(c'est bien ca|c'est ca|pas vrai|n'est ce pas|tu vois ce que je veux dire)/.test(n)) return block('SUGGESTIVE_TAG', 'tag de confirmation');
+    // 7. Choix forcé
+    if (/\b[a-z']+\s+ou\s+[a-z']+\b/.test(n) && /\?/.test(text) && !isApprovedOpen) return block('FORCED_CHOICE', 'choix forcé "X ou Y ?"');
+    // 8. Pression
+    if (/(tu es sur|t'es sur|reflechis bien|essaie de te rappeler|fais un effort|concentre toi|allez dis moi|c'est important que tu|encore une fois|dis moi tout|j'ai besoin que tu|fais moi confiance)/.test(n))
+      return block('PRESSURE', 'pression / insistance');
+    // 10. Récompense conditionnée
+    if (/\bsi tu (me |m'|nous )?(dis|racontes|reponds|parles)\b.*(alors|je te|tu auras|on (ira|fera)|un (bonbon|cadeau|bisou))/.test(n)
+      || /\b(bonbon|cadeau|recompense)\b.*\bsi tu\b/.test(n)) return block('CONDITIONAL_REWARD', 'récompense conditionnée');
+    // 11. Reformulation enrichie
+    const cued = n.match(/\btu (as|m'as|me) (dit|parle|parlais|racontes?|raconte) (de |du |des |d'|que |qu'|sur )?(.+)/);
+    if (cued) {
+      const lastSet = new Set(canon((state && state.lastChildUtterance) || '').split(' ').filter(Boolean));
+      for (const w of canon(cued[4]).split(' ')) {
+        if (w.length < 3) continue;
+        if (!lastSet.has(w) && !lexiconHas(state, w)) return block('ENRICHED_REFORMULATION', `mot non dit par l'enfant : "${w}"`);
+      }
+    }
+    // 12. Étiquetage émotionnel
+    if (/(ca a du|ca devait|ca a ete) (te |t')/.test(n) || /\btu (devais|devait) (avoir|etre)\b/.test(n)
+      || /(c'etait|ca a ete|ca devait etre) (horrible|affreux|effrayant|terrible|grave|nul|mechant|degoutant|terrifiant)/.test(n)
+      || /\btu as eu (peur|mal|honte)\b/.test(n) || /\bje vois que tu es\b/.test(n) || /\btu as l'air\b/.test(n))
+      return block('EMOTIONAL_LABEL', 'imposition d\'un vécu');
+    // 14. Minimisation (formes nettes ; pas le bénin « ce n'est pas grave » de réassurance)
+    if (/(c'est pas si grave|ce n'est pas si grave|c'est rien|ce n'est rien|c'est pas grand chose)/.test(n)) return block('MINIMIZE', 'minimisation');
+    // 9. Répétition d'une question déjà posée
+    const asked = (state && state.askedQuestions) || [];
+    if (c && asked.map(canon).includes(c)) return block('REPEAT_QUESTION', 'question déjà posée');
+
     return PASS;
   } catch (e) {
-    return block('ERROR', 'exception du filtre : ' + (e && e.message));
+    return block('ERROR', 'exception audit : ' + (e && e.message));
   }
 }
 
-export { evaluate, normalize };
+/* --- API runtime : l'allow-list fait foi --- */
+function evaluate(text, state = {}) { return evaluateOutput(text, state); }
+
+export { evaluate, evaluateOutput, audit, canon, nstrict, tabooForm };
