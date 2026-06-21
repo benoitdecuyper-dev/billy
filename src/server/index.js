@@ -12,6 +12,7 @@ import path from 'node:path';
 import { WebSocketServer } from 'ws';
 import QRCode from 'qrcode';
 import selfsigned from 'selfsigned';
+import { streamReportPdf } from '../report/generatePdf.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PUBLIC_DIR = path.resolve(__dirname, '../../public');
@@ -80,6 +81,19 @@ async function handler(req, res) {
       const buf = Buffer.from(await up.arrayBuffer());
       res.writeHead(200, { 'Content-Type': 'audio/mpeg', 'Cache-Control': 'no-store' }); res.end(buf);
     } catch { res.writeHead(502); res.end('tts error'); }
+    return;
+  }
+
+  // Rapport de séance en PDF (généré à partir de l'échange transmis). Données sensibles :
+  // rien n'est stocké côté serveur, le PDF est renvoyé puis oublié.
+  if (url.pathname === '/api/report' && req.method === 'POST') {
+    let body = '';
+    req.on('data', (c) => { body += c; if (body.length > 2e6) req.destroy(); });
+    req.on('end', () => {
+      let session; try { session = JSON.parse(body); } catch { res.writeHead(400); res.end('bad json'); return; }
+      res.writeHead(200, { 'Content-Type': 'application/pdf', 'Content-Disposition': 'inline; filename="rapport-billy.pdf"', 'Cache-Control': 'no-store' });
+      try { streamReportPdf(session, res); } catch { try { res.end(); } catch {} }
+    });
     return;
   }
 

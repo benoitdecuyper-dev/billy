@@ -30,9 +30,11 @@ import { audit } from '/lib/antiSuggestion.js';
   const startBtn = document.getElementById('startBtn');
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
 
-  let script = null, frVoice = null, flap = null, childWords = new Set(), relIdx = 0, started = false;
+  let script = null, frVoice = null, flap = null, childWords = new Set(), relIdx = 0, started = false, tours = [];
 
   const setState = (s) => { app.dataset.state = s; };
+  const nowHM = () => new Date().toTimeString().slice(0, 5);
+  const recordTurn = (acteur, texte) => tours.push({ heure: nowHM(), acteur, texte });
   const canon = (s) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[’]/g, "'").replace(/[^a-z0-9' ]/g, ' ').replace(/\s+/g, ' ').trim();
 
   if ('speechSynthesis' in window) { const pv = () => { const v = speechSynthesis.getVoices().filter((x) => /^fr/i.test(x.lang)); frVoice = v.find((x) => /google|natural|naturel/i.test(x.name)) || v[0] || null; }; pv(); speechSynthesis.onvoiceschanged = pv; }
@@ -54,6 +56,7 @@ import { audit } from '/lib/antiSuggestion.js';
     setState('speaking');
     const v = audit(text, { childLexicon: childWords });
     if (v.decision === 'BLOCK') text = OPEN_RELANCES[0]; // garde-fou : repli sur invitation ouverte
+    recordTurn('Billy', text);
     startFlap();
     try {
       const r = await fetch('/api/tts?text=' + encodeURIComponent(text));
@@ -87,7 +90,7 @@ import { audit } from '/lib/antiSuggestion.js';
     for (let i = 0; i < MAX_TURNS;) {
       const heard = await listen();
       if (!heard) { if (!nudged) { nudged = true; await speak(SILENCE_TXT); continue; } break; }
-      addWords(heard);
+      addWords(heard); recordTurn('Enfant', heard);
       const kw = pickKeyword(heard);
       let relance = kw ? `Tu as parlé de ${kw}. Raconte-moi.` : OPEN_RELANCES[relIdx++ % OPEN_RELANCES.length];
       if (audit(relance, { childLexicon: childWords, lastChildUtterance: heard }).decision === 'BLOCK') relance = OPEN_RELANCES[relIdx++ % OPEN_RELANCES.length];
@@ -112,12 +115,44 @@ import { audit } from '/lib/antiSuggestion.js';
     setState('idle'); started = false;
     startBtn.textContent = 'Recommencer 🌰';
     start.hidden = false;
+    showReportLink();
+  }
+
+  // Rapport de séance (côté ADULTE) : génère le PDF depuis l'échange (verbatim). Démo neutre.
+  function showReportLink() {
+    let link = document.getElementById('reportLink');
+    if (!link) {
+      link = document.createElement('button');
+      link.id = 'reportLink'; link.className = 'start__btn';
+      link.style.cssText = 'background:#fff;color:#ec7a1e;border:2px solid #ec7a1e;box-shadow:none;margin-top:.6rem';
+      link.addEventListener('click', openReport);
+      start.appendChild(link);
+    }
+    link.textContent = '📄 Voir le rapport de séance';
+    link.style.display = '';
+  }
+  async function openReport() {
+    const now = new Date();
+    const session = {
+      date: now.toLocaleDateString('fr-FR'), debut: tours[0]?.heure || nowHM(), fin: nowHM(), duree: '—',
+      enfant: { prenom: '(non saisi)', age: '2-5 ans' }, version: 'séance démo (contenu neutre)',
+      tours, recap: [], signaux: [],
+    };
+    try {
+      const r = await fetch('/api/report', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(session) });
+      const b = await r.blob(); window.open(URL.createObjectURL(b), '_blank');
+    } catch {}
   }
 
   async function init() {
     try { script = await fetch('/content/script-billy.json').then((r) => r.json()); }
     catch { script = { phases: [] }; }
-    startBtn.addEventListener('click', () => { if (started) return; started = true; start.hidden = true; childWords = new Set(); relIdx = 0; run(); });
+    startBtn.addEventListener('click', () => {
+      if (started) return; started = true; start.hidden = true;
+      childWords = new Set(); relIdx = 0; tours = [];
+      const rl = document.getElementById('reportLink'); if (rl) rl.style.display = 'none';
+      run();
+    });
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});
   }
   init();

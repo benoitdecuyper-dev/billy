@@ -158,3 +158,8 @@ function write(render, session, path) {
 
 export const writeReportPdf = (session, path) => write(renderReport, session, path);
 export const writeDemarchePdf = (session, path) => write(renderDemarche, session, path);
+
+// Variante streaming : écrit le PDF directement dans une réponse HTTP (ou tout writable).
+function pipeTo(render, session, stream) { const doc = new PDFDocument({ size: 'A4', margin: 50 }); doc.pipe(stream); render(doc, session); doc.end(); }
+export const streamReportPdf = (session, stream) => pipeTo(renderReport, session, stream);
+export const streamDemarchePdf = (session, stream) => pipeTo(renderDemarche, session, stream);
