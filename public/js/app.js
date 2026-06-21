@@ -25,6 +25,7 @@
   const SILENCE = { audio: 'silence', text: "Prends ton temps. Je t'écoute." };
   const STOP = { audio: 'stop', text: "D'accord, on s'arrête. Tu peux retrouver un grand en qui tu as confiance." };
   const GENTLE_NUDGE_MS = 14000;
+  const END_OF_SPEECH_MS = 2800; // mains-libres : silence après la parole de l'enfant => on enchaîne (sans couper)
 
   // --- DOM ---
   const app = document.querySelector('.app');
@@ -42,7 +43,7 @@
   const canListen = !!SR;
 
   let idx = 0, followupsLeft = 0, started = false;
-  let recognition = null, nudgeTimer = null, nudged = false, heardSomething = false;
+  let recognition = null, nudgeTimer = null, nudged = false, heardSomething = false, endTimer = null;
   let audioEl = null, flapTimer = null;
 
   function setState(s) { app.dataset.state = s; }
@@ -85,21 +86,25 @@
   // --- Tour de l'enfant : Billy écoute et NE COUPE JAMAIS ---
   function childTurn() {
     setState('listening');
-    statusEl.textContent = "C'est à toi 🌸 — prends ton temps";
-    doneBtn.hidden = false;
+    statusEl.textContent = "À toi 🌰 — je t'écoute";
+    doneBtn.hidden = true; // mains-libres : l'enfant n'a aucun bouton à actionner (cf. ux-2-5.md)
     heardSomething = false; nudged = false;
     armNudge();
-    if (!canListen) { showFallback(); return; }
+    if (!canListen) { doneBtn.hidden = false; showFallback(); return; }
     recognition = new SR();
     recognition.lang = 'fr-FR'; recognition.interimResults = true; recognition.continuous = true;
     recognition.onresult = (e) => {
       heardSomething = true; clearNudge();
       const t = Array.from(e.results).map((r) => r[0].transcript).join(' ').trim();
       if (t) subtitle.textContent = '« ' + t + ' »';
+      // détection auto de fin de parole : on (ré)arme un délai de silence ; s'il expire, on enchaîne
+      clearEnd();
+      endTimer = setTimeout(childDone, END_OF_SPEECH_MS);
     };
     recognition.onerror = () => { if (!heardSomething) showFallback(); };
     try { recognition.start(); } catch { showFallback(); }
   }
+  function clearEnd() { if (endTimer) { clearTimeout(endTimer); endTimer = null; } }
   function armNudge() {
     clearNudge();
     nudgeTimer = setTimeout(async () => {
@@ -113,7 +118,8 @@
   function clearNudge() { if (nudgeTimer) { clearTimeout(nudgeTimer); nudgeTimer = null; } }
 
   function childDone() {
-    clearNudge(); doneBtn.hidden = true; hideFallback();
+    if (app.dataset.state !== 'listening') return; // garde anti double-déclenchement (timer + clic)
+    clearNudge(); clearEnd(); doneBtn.hidden = true; hideFallback();
     if (recognition) { try { recognition.stop(); } catch {} recognition = null; }
     if (followupsLeft > 0) {
       followupsLeft--;
@@ -142,7 +148,7 @@
   }
 
   function finish() {
-    clearNudge(); stopAudio(); setState('idle');
+    clearNudge(); clearEnd(); stopAudio(); setState("idle");
     statusEl.textContent = 'Démonstration terminée 🌸';
     doneBtn.hidden = true; stopBtn.hidden = true;
     micLabel.textContent = 'Revenir au début'; micBtn.disabled = false;
@@ -150,7 +156,7 @@
   }
 
   async function pause() {
-    clearNudge(); stopAudio();
+    clearNudge(); clearEnd(); stopAudio();
     if (recognition) { try { recognition.stop(); } catch {} recognition = null; }
     hideFallback(); doneBtn.hidden = true;
     started = false; idx = 0;

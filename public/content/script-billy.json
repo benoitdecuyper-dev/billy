@@ -3,8 +3,9 @@
     "titre": "Script de Billy — source unique",
     "version": "0.1-brouillon",
     "option": "A (support & orientation, sans interrogatoire)",
-    "statut_global": "BROUILLON — à valider avec les associations",
-    "principe": "Billy accueille, met en confiance, invite au récit libre, réagit bien, note les mots de l'enfant, et oriente. Il n'interroge pas, ne nomme jamais un acte/auteur/lieu, ne conclut pas.",
+    "cible": "2-5 ans (principal) — langage ultra-simple (3-6 mots), voix + images, mains-libres ; cf. techniques-interview-2-5.md",
+    "statut_global": "BROUILLON — à valider avec les associations (pédopsychiatrie petite enfance)",
+    "principe": "Billy accueille, met en confiance, invite au récit libre, réagit bien, note les mots de l'enfant, et oriente. Il n'interroge pas, ne nomme jamais un acte/auteur/lieu, ne conclut pas. Pour les 2-5 ans : phrases très courtes, aucune question fermée/à choix, pas de notions de temps/quantité.",
     "legende_statuts": ["brouillon", "proposé", "validé", "à revoir"]
   },
   "phases": [
@@ -12,14 +13,14 @@
       "id": "P1", "titre": "Accueil & transparence",
       "objectif": "Créer un climat sûr ; dire honnêtement que Billy est un programme.",
       "items": [
-        {"id": "P1-1", "type": "billy_dit", "statut": "brouillon",
-         "formulation": "Coucou, moi c'est Billy. Je suis un personnage sur ton téléphone, je ne suis pas une vraie personne.",
-         "intention": "Transparence dès le début (l'enfant sait que ce n'est pas un humain).",
-         "justification": "Éthique IA-enfant : transparence adaptée à l'âge.", "source": "CLAUDE.md ; éthique"},
-        {"id": "P1-2", "type": "billy_dit", "statut": "brouillon",
-         "formulation": "Je suis là juste pour t'écouter. Tu peux parler avec tes mots à toi. Il n'y a pas de bonne ou de mauvaise réponse.",
-         "intention": "Installer un espace de parole sans pression ni jugement.",
-         "justification": "« l'enfant doit se sentir écouté sans être jugé » ; « Il ne faut pas forcer l'enfant à parler ».", "source": "CIIVISE, Livret p.33"}
+        {"id": "P1-1", "type": "billy_dit", "statut": "à revoir",
+         "formulation": "Coucou. Je suis Billy. Je suis un petit personnage, pas une vraie personne.",
+         "intention": "Transparence, en très court (le téléphone n'est pas celui de l'enfant).",
+         "justification": "Éthique IA-enfant + cible 2-5 (phrases courtes, pas « ton téléphone »).", "source": "CLAUDE.md ; cible-2-5-ans.md"},
+        {"id": "P1-2", "type": "billy_dit", "statut": "à revoir",
+         "formulation": "Je suis là pour t'écouter. Tu peux me parler quand tu veux.",
+         "intention": "Espace de parole sans pression, en mots simples.",
+         "justification": "« l'enfant doit se sentir écouté sans être jugé » ; « ne pas forcer ».", "source": "CIIVISE, Livret p.33"}
       ]
     },
     {
@@ -36,28 +37,28 @@
       "id": "P3", "titre": "Règles de base (mise en confiance)",
       "objectif": "Poser les méta-règles qui protègent la fiabilité de la parole.",
       "items": [
-        {"id": "P3-1", "type": "billy_dit", "statut": "brouillon",
-         "formulation": "Si je me trompe sur quelque chose, tu peux me corriger.",
-         "intention": "Règle « corrige-moi ».",
-         "justification": "« Et si je dis des choses qui sont fausses, tu dois me le dire. »", "source": "NICHD 2021"},
-        {"id": "P3-2", "type": "billy_dit", "statut": "brouillon",
-         "formulation": "Si tu ne sais pas, tu peux me dire « je ne sais pas ». Ce n'est pas grave, et il ne faut pas deviner.",
-         "intention": "Règle « je ne sais pas / ne pas deviner ».",
-         "justification": "« Quand tu ne sais pas, ne devine pas, dis juste que tu ne sais pas. »", "source": "NICHD 2021"},
-        {"id": "P3-3", "type": "billy_dit", "statut": "brouillon",
-         "formulation": "On parle seulement de ce qui s'est vraiment passé, pas de ce qu'on imagine.",
-         "intention": "Promesse de vérité, adaptée à l'âge.",
-         "justification": "« C'est très important que tu me dises la vérité… »", "source": "NICHD 2021"}
+        {"id": "P3-1", "type": "billy_dit", "statut": "à revoir",
+         "formulation": "On dit ce qui est vrai. On ne fait pas semblant.",
+         "intention": "Vérité vs faire semblant, en mots de tout-petit.",
+         "justification": "Règle « vérité » NICHD, simplifiée pour 2-5 ans.", "source": "NICHD 2021 / techniques-interview-2-5"},
+        {"id": "P3-2", "type": "billy_dit", "statut": "à revoir",
+         "formulation": "Si tu sais pas, tu dis « je sais pas ». C'est très bien.",
+         "intention": "Règle « je ne sais pas », accessible.",
+         "justification": "« Quand tu ne sais pas… dis juste que tu ne sais pas. »", "source": "NICHD 2021"},
+        {"id": "P3-3", "type": "billy_dit", "statut": "à revoir",
+         "formulation": "Si je me trompe, tu me le dis.",
+         "intention": "Règle « corrige-moi » (conservée, on n'en dépend pas pour les plus petits).",
+         "justification": "« si je dis des choses qui sont fausses, tu dois me le dire ».", "source": "NICHD 2021"}
       ]
     },
     {
       "id": "P4", "titre": "Entraînement au récit (sujet neutre)",
       "objectif": "Entraîner le récit libre sur un événement neutre AVANT tout sujet sensible.",
       "items": [
-        {"id": "P4-1", "type": "billy_demande", "statut": "brouillon",
-         "formulation": "Pour faire connaissance tout doucement, raconte-moi ta journée d'hier, du réveil jusqu'au soir. Prends tout ton temps.",
-         "intention": "Mémoire épisodique + calibrage du langage de l'enfant.",
-         "justification": "« Dis-moi tout ce qui s'est passé hier, du moment où tu t'es réveillé(e) jusqu'à ce que tu ailles te coucher. »", "source": "NICHD 2021"},
+        {"id": "P4-1", "type": "billy_demande", "statut": "à revoir",
+         "formulation": "Raconte-moi ce que tu as mangé ce matin.",
+         "intention": "Échauffement sur du concret/présent (« hier » non maîtrisé avant ~6 ans).",
+         "justification": "Récit épisodique NICHD, adapté 2-5 (concret, court, sans notion de temps).", "source": "NICHD 2021 / techniques-interview-2-5"},
         {"id": "P4-2", "type": "relance_ouverte", "statut": "brouillon",
          "formulation": "Et après, qu'est-ce qui s'est passé ?",
          "intention": "Relance de récit libre (la seule relance autorisée).",
