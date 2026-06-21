@@ -26,6 +26,10 @@
       padding:1.1rem;border-radius:999px;box-shadow:0 12px 26px rgba(236,122,30,.4);margin-top:1.2rem;}
     .warn{background:#fff5f7;border:1px solid #f3c9d3;border-radius:14px;padding:.8rem 1rem;color:var(--red);font-size:.85rem;}
     .num119{font-weight:800;color:var(--orange);}
+    .opt{display:flex;gap:.6rem;align-items:flex-start;padding:.45rem 0;font-size:.95rem;cursor:pointer;}
+    .opt input{margin-top:.2rem;width:1.1rem;height:1.1rem;}
+    textarea{width:100%;border:1px solid #e3d6cc;border-radius:12px;padding:.6rem;font-family:inherit;font-size:.95rem;margin-top:.5rem;resize:vertical;}
+    .firewall{font-size:.82rem;color:var(--muted);margin:.1rem 0 .7rem;line-height:1.45;}
   </style>
 </head>
 <body>
@@ -35,6 +39,18 @@
       <h1>Avant de commencer</h1>
       <p class="sub">Quelques repères pour bien accompagner votre enfant. (1 minute)</p>
     </header>
+
+    <div class="step">
+      <h2>📝 Pourquoi venez-vous aujourd'hui ?</h2>
+      <p class="firewall">Cela nous aide à mieux vous orienter. <b>Cette information sert au suivi
+        et à l'orientation — elle n'est jamais transmise à Billy et n'influence jamais ses
+        questions à l'enfant.</b></p>
+      <label class="opt"><input type="radio" name="motif" value="precaution" /> Par précaution, au cas où (aucun élément précis).</label>
+      <label class="opt"><input type="radio" name="motif" value="doute" /> J'ai un doute, une inquiétude.</label>
+      <label class="opt"><input type="radio" name="motif" value="suspicion" /> Une suspicion précise (un comportement, des propos…).</label>
+      <label class="opt"><input type="radio" name="motif" value="institution" /> Une situation dans une école / crèche / structure.</label>
+      <textarea id="motifNote" rows="2" placeholder="En quelques mots, si vous voulez préciser… (facultatif)"></textarea>
+    </div>
 
     <div class="step">
       <h2><span class="num">1</span> Le rôle de Billy — et le vôtre</h2>
@@ -82,5 +98,23 @@
 
     <a class="cta" href="/appairage.html">J'ai compris — lancer la séance 🌰</a>
   </div>
+
+  <script>
+    // Motif de la démarche : conservé en LOCAL (pour le suivi/orientation et le rapport).
+    // CLOISONNÉ : jamais transmis à Billy, jamais utilisé dans ses questions à l'enfant.
+    const KEY = 'billy_motif';
+    const note = document.getElementById('motifNote');
+    function save() {
+      const m = document.querySelector('input[name=motif]:checked');
+      try { localStorage.setItem(KEY, JSON.stringify({ motif: m ? m.value : null, note: note.value, ts: Date.now() })); } catch {}
+    }
+    document.querySelectorAll('input[name=motif]').forEach((r) => r.addEventListener('change', save));
+    note.addEventListener('input', save);
+    try {
+      const s = JSON.parse(localStorage.getItem(KEY) || '{}');
+      if (s.motif) { const el = document.querySelector(`input[value="${s.motif}"]`); if (el) el.checked = true; }
+      if (s.note) note.value = s.note;
+    } catch {}
+  </script>
 </body>
 </html>

@@ -74,7 +74,16 @@ Billy va faire, comment réagir, et la marche à suivre/orientation.
   parler** et enchaîne tout seul — sans bouton « J'ai fini ». À régler avec prudence pour **ne
   jamais couper** l'enfant (seuils de silence généreux, jamais d'interruption).
 
-## V2-5 — Cadrage vocal IA avec le parent (avant la séance)
+## V2-5 — Cadrage du motif (intégré à la préface) — ✅ SIMPLIFIÉ (2026-06-21)
+
+> **Décision : pas de cadrage vocal temps réel séparé pour l'instant.** Le besoin est couvert
+> par un **questionnaire rapide « pourquoi venez-vous ? »** intégré à la **préface adulte**
+> (`public/adulte.html`) : précaution / doute / suspicion précise / situation en institution +
+> note libre. **Cloisonné** : l'info sert au suivi/orientation et au rapport, **jamais** transmise
+> à Billy ni à ses questions à l'enfant. *(La version « échange vocal temps réel » reste une piste
+> future ; le détail ci-dessous est conservé pour mémoire.)*
+
+### (archive) Cadrage vocal IA avec le parent (avant la séance)
 
 **But.** Une **phase de cadrage en voix temps réel** où **le parent décrit la situation**, pour
 **trier** et **contextualiser** avant que l'enfant ne parle à Billy. Prolonge la préface (V2-3) :
@@ -95,7 +104,12 @@ la préface *explique* la posture ; le cadrage *écoute* le parent.
   personnalisé ; RGPD (le récit du parent peut nommer un tiers → données sensibles, minimisation,
   pas de qualification ni de désignation par l'app) ; le parent reste orienté vers les pros.
 
-## V2-6 — Vidéo tuto pour les parents
+## V2-6 — Vidéo tuto pour les parents — ❌ ABANDONNÉ (2026-06-21)
+
+> **Décision : pas de vidéo tuto pour l'instant — la préface adulte (`adulte.html`) couvre le
+> besoin** (repères de posture + que faire). Détail conservé ci-dessous pour mémoire.
+
+### (archive) Vidéo tuto pour les parents
 
 **But.** Une **courte vidéo pédagogique** qui explique aux parents comment utiliser Billy et,
 surtout, **la bonne posture** : pourquoi ne pas interroger soi-même, comment réagir, la marche à
