@@ -20,6 +20,7 @@ const TYPES = {
   '.webp': 'image/webp',
   '.mp3': 'audio/mpeg',
   '.jpg': 'image/jpeg',
+  '.json': 'application/json; charset=utf-8',
 };
 
 const server = http.createServer(async (req, res) => {

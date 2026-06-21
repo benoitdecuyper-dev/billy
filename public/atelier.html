@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Atelier Billy — Cahier de la posture</title>
+  <style>
+    :root { --pink:#ec6a9c; --ink:#3f3640; --muted:#8a7f86; --line:#eadfe6; --cream:#fff8f4; }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family:"Segoe UI",system-ui,sans-serif; color:var(--ink);
+           background:var(--cream); line-height:1.5; }
+    .wrap { max-width:860px; margin:0 auto; padding:2rem 1.2rem 5rem; }
+    header.top { text-align:center; margin-bottom:1.5rem; }
+    header.top h1 { color:var(--pink); margin:.2rem 0; }
+    .pill { display:inline-block; font-size:.78rem; font-weight:700; padding:.25rem .7rem;
+            border-radius:999px; background:#fff; border:1px solid var(--line); }
+    .intro { background:#fff; border:1px solid var(--line); border-radius:16px; padding:1rem 1.2rem;
+             font-size:.92rem; color:var(--muted); margin:1rem 0 2rem; }
+    .legend { display:flex; gap:.5rem; flex-wrap:wrap; justify-content:center; margin-top:.6rem; }
+    .badge { font-size:.72rem; font-weight:700; padding:.2rem .55rem; border-radius:999px; }
+    .b-brouillon{ background:#f1eef3; color:#6b6471; }
+    .b-propose{ background:#fff3d6; color:#9a7400; }
+    .b-valide{ background:#dff3e6; color:#2f8a55; }
+    .b-arevoir{ background:#ffe1e6; color:#c23b57; }
+    section.phase { margin:2rem 0; }
+    section.phase > h2 { color:var(--ink); border-bottom:2px solid var(--pink); padding-bottom:.3rem; }
+    .obj { color:var(--muted); font-size:.9rem; margin:.2rem 0 1rem; }
+    .item { background:#fff; border:1px solid var(--line); border-radius:16px; padding:1rem 1.2rem;
+            margin:.8rem 0; box-shadow:0 4px 14px rgba(236,106,156,.06); }
+    .item .row { display:flex; justify-content:space-between; align-items:center; gap:.5rem; margin-bottom:.5rem; }
+    .type { font-size:.72rem; font-weight:700; color:var(--pink); text-transform:uppercase; letter-spacing:.03em; }
+    .id { font-size:.72rem; color:var(--muted); }
+    .formulation { font-size:1.12rem; background:#fff6fa; border-left:4px solid var(--pink);
+                   border-radius:0 12px 12px 0; padding:.7rem .9rem; margin:.3rem 0 .6rem; }
+    .meta { font-size:.85rem; color:var(--muted); }
+    .meta b { color:var(--ink); font-weight:600; }
+    .meta .src { font-style:italic; }
+    .block { background:#fff; border:1px solid var(--line); border-radius:16px; padding:1rem 1.2rem; margin:.8rem 0; }
+    .interdits { border-color:#f3c9d3; background:#fff5f7; }
+    .interdits h2 { color:#c23b57; margin-top:0; }
+    table { width:100%; border-collapse:collapse; font-size:.9rem; }
+    td { padding:.4rem .5rem; border-bottom:1px solid var(--line); }
+    td:first-child { font-weight:700; white-space:nowrap; color:var(--ink); }
+    .howto { background:#eef6ff; border:1px solid #d4e6fb; border-radius:16px; padding:1rem 1.2rem;
+             font-size:.9rem; color:#3a5a82; margin-bottom:1.5rem; }
+    @media print { body{background:#fff;} .item,.block{box-shadow:none;} .howto{display:none;} }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="top">
+      <span class="pill" id="version">…</span>
+      <h1>Atelier Billy — Cahier de la posture</h1>
+      <p class="obj" id="statut"></p>
+      <div class="legend">
+        <span class="badge b-brouillon">brouillon</span>
+        <span class="badge b-propose">proposé</span>
+        <span class="badge b-valide">validé</span>
+        <span class="badge b-arevoir">à revoir</span>
+      </div>
+    </header>
+
+    <div class="howto">
+      <b>Pour les associations / experts :</b> chaque encadré est <b>une phrase que Billy peut
+      dire</b>, avec son <b>intention</b> et sa <b>justification (source)</b>. Vous pouvez commenter
+      chaque élément (par son numéro, ex. « P5-1 »), proposer une reformulation, ou changer son
+      statut. Vos retours sont réintégrés dans Billy à chaque tour. Imprimable (Ctrl+P).
+    </div>
+
+    <p class="intro" id="principe"></p>
+
+    <div id="phases"></div>
+
+    <div class="block interdits" id="interdits"></div>
+    <div class="block" id="orientation"></div>
+    <div class="block" id="rapport"></div>
+  </div>
+
+  <script>
+    const badgeClass = (s) => ({brouillon:'b-brouillon','proposé':'b-propose','validé':'b-valide','à revoir':'b-arevoir'}[s] || 'b-brouillon');
+    const esc = (t) => (t||'').replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+
+    fetch('/content/script-billy.json').then(r => r.json()).then(data => {
+      document.getElementById('version').textContent = 'version ' + data.meta.version;
+      document.getElementById('statut').textContent = data.meta.statut_global;
+      document.getElementById('principe').textContent = data.meta.principe;
+
+      const phasesEl = document.getElementById('phases');
+      for (const ph of data.phases) {
+        const sec = document.createElement('section');
+        sec.className = 'phase';
+        sec.innerHTML = `<h2>${esc(ph.titre)}</h2><p class="obj">${esc(ph.objectif)}</p>`;
+        for (const it of ph.items) {
+          const d = document.createElement('div');
+          d.className = 'item';
+          d.innerHTML = `
+            <div class="row">
+              <span class="type">${esc(it.type.replace(/_/g,' '))}</span>
+              <span><span class="badge ${badgeClass(it.statut)}">${esc(it.statut)}</span> <span class="id">${esc(it.id)}</span></span>
+            </div>
+            <div class="formulation">« ${esc(it.formulation)} »</div>
+            <div class="meta"><b>Intention :</b> ${esc(it.intention)}<br>
+            <span class="src"><b>Justification :</b> ${esc(it.justification)} — ${esc(it.source)}</span></div>`;
+          sec.appendChild(d);
+        }
+        phasesEl.appendChild(sec);
+      }
+
+      const interEl = document.getElementById('interdits');
+      interEl.innerHTML = `<h2>${esc(data.interdits.titre)}</h2>` +
+        data.interdits.regles.map(r => `<div class="meta">⛔ ${esc(r.regle)} <span class="src">(${esc(r.source)})</span></div>`).join('');
+
+      const oriEl = document.getElementById('orientation');
+      oriEl.innerHTML = `<h2>${esc(data.orientation.titre)}</h2><table>` +
+        data.orientation.niveaux.map(n => `<tr><td>${esc(n.niveau)}</td><td>${esc(n.action)}</td></tr>`).join('') +
+        `</table><p class="meta" style="margin-top:.6rem">${esc(data.orientation.note)}</p>`;
+
+      const rapEl = document.getElementById('rapport');
+      rapEl.innerHTML = `<h2>${esc(data.rapport.titre)}</h2>
+        <div class="meta"><b>Contient :</b> ${data.rapport.contient.map(esc).join(' · ')}<br>
+        <b>Garde-fous :</b> ${data.rapport.garde_fous.map(esc).join(' · ')}</div>`;
+    }).catch(e => { document.getElementById('phases').textContent = 'Erreur de chargement : ' + e; });
+  </script>
+</body>
+</html>
