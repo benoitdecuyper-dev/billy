@@ -1,9 +1,10 @@
 :root {
-  --pink: #ff9ec1;
-  --pink-deep: #ec6a9c;
-  --cream: #fff6f0;
-  --ink: #5b4a52;
-  --muted: #9a8a92;
+  /* Palette ORANGE (identité moins genrée) */
+  --pink: #ffb15c;
+  --pink-deep: #ec7a1e;
+  --cream: #fff6ee;
+  --ink: #4f4438;
+  --muted: #998a78;
   --ok: #6bbf8a;
 }
 
@@ -14,7 +15,7 @@ body {
   margin: 0;
   font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
   color: var(--ink);
-  background: radial-gradient(120% 70% at 50% -10%, #fff 0%, #ffeef4 45%, #f3ecff 100%);
+  background: radial-gradient(120% 70% at 50% -10%, #fff 0%, #fff2e3 45%, #ffe7d2 100%);
 }
 
 .app {

@@ -55,8 +55,10 @@ Présentée comme une **marche à suivre standard** (jamais comme un diagnostic)
 - Le **récap** et les **signaux** sont produits par une **logique transparente et auditable**
   (mots-clés/règles validés par les pros), pas une « boîte noire » qui décide. En V1, on
   **n'utilise pas de résumé IA libre** : on horodate le verbatim + on coche des signaux prédéfinis.
-- **Format d'export : `.docx` (Word)** — choisi pour sa simplicité (lisible, imprimable,
-  transmissible, annotable par un professionnel). Généré côté appareil.
+- **Format d'export : `.pdf`** (les **deux** documents — rapport de séance ET démarche
+  d'orientation — sont produits en PDF : lisible/ouvrable partout, imprimable, transmissible).
+  Généré côté appareil. *(Un générateur `.docx` existe aussi dans `src/report/` mais le format
+  livré est le PDF.)*
 - **RGPD — données ultra-sensibles** (mineur + santé + pénal) : pas de stockage cloud par
   défaut ; rapport **généré localement**, **exportable (.docx)** pour être remis au
   professionnel ; chiffrement si conservé ; suppression facile ; **aucun analytics**, aucune

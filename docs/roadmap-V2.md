@@ -63,6 +63,17 @@ Billy va faire, comment réagir, et la marche à suivre/orientation.
 
 ---
 
+## V2-4 — UX du site (identité & interaction)
+
+- **Moins genré → palette ORANGE.** Abandonner le rose (perçu comme genré) au profit d'une
+  identité **orange** chaleureuse et neutre, cohérente avec l'écureuil. *(Appliqué en avance sur
+  la démo.)*
+- **L'écureuil s'anime quand il parle** : bouche/mouvement synchronisés à la voix (la frame
+  « bouche ouverte » alignée existe ; à fiabiliser).
+- **Détection automatique de fin de parole (VAD)** : Billy **détecte quand l'enfant a fini de
+  parler** et enchaîne tout seul — sans bouton « J'ai fini ». À régler avec prudence pour **ne
+  jamais couper** l'enfant (seuils de silence généreux, jamais d'interruption).
+
 ## Backlog
 À intégrer comme épopées : **BILLY-E12** (trace audio), **BILLY-E13** (2ᵉ téléphone /
 co-observation Barnahus), **BILLY-E14** (préface adulte). Toutes **bloquées** tant que les

@@ -3,7 +3,7 @@
  * pour visualiser le rendu. Aucune donnée réelle, aucun contenu sensible.
  * Lancer : node tools/exemple-rapport.js
  */
-import { writeReportDocx, writeDemarcheDocx } from '../src/report/generateReport.js';
+import { writeReportPdf, writeDemarchePdf } from '../src/report/generatePdf.js';
 
 const exemple = {
   date: '21 juin 2026',
@@ -38,6 +38,6 @@ const exemple = {
 };
 
 Promise.all([
-  writeReportDocx(exemple, 'docs/Rapport_Billy_exemple.docx'),
-  writeDemarcheDocx(exemple, 'docs/Demarche_Billy_exemple.docx'),
+  writeReportPdf(exemple, 'docs/Rapport_Billy_exemple.pdf'),
+  writeDemarchePdf(exemple, 'docs/Demarche_Billy_exemple.pdf'),
 ]).then(([a, b]) => console.log('Écrits :', a, '+', b));
