@@ -1,7 +1,7 @@
 /* Tests de la continuité silencieuse (BILLY-E15). npm test */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { emptyState, assertNoContent, canStartNewSession, msUntilNextSession, advance, complete, MIN_GAP_MS } from './navState.js';
+import { emptyState, assertNoContent, advance, complete } from './navState.js';
 
 test('état vide = navigation nulle, aucun contenu', () => {
   const s = emptyState();
@@ -23,17 +23,6 @@ test('advance ne garde que la navigation', () => {
   assert.equal(s.phaseId, 'P4');
   assert.equal(s.lastSessionTs, 1000);
   assertNoContent(s);
-});
-
-test('délai 24h entre séances', () => {
-  const s = advance(emptyState(), 'P2', 1_000_000);
-  assert.equal(canStartNewSession(s, 1_000_000 + 1000), false); // trop tôt
-  assert.equal(canStartNewSession(s, 1_000_000 + MIN_GAP_MS), true); // ok après 24h
-  assert.ok(msUntilNextSession(s, 1_000_000 + 1000) > 0);
-});
-
-test('première séance : pas de délai', () => {
-  assert.equal(canStartNewSession(emptyState(), 5000), true);
 });
 
 test('complete incrémente le compteur et remet la navigation à zéro', () => {

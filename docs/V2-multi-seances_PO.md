@@ -1,5 +1,10 @@
 # Billy V2 — Modèle multi-séances courtes : note de cadrage PO
 
+> 🛑 **MISE À JOUR (2026-06-21, décision utilisateur) : le DÉLAI MINIMUM de 24 h entre séances
+> est RETIRÉ.** On peut reprendre quand on veut. Le ticket **BILLY-107 est annulé** ; toutes les
+> mentions du « délai 24 h » ci-dessous sont **caduques**. Le reste du cadrage (continuité
+> silencieuse = navigation seulement, jamais de contenu) reste valable.
+
 > **Statut : CADRAGE PO — à valider avec billy-ethique-ia-enfant, billy-pedopsychologue,
 > factory-expert-conformite et les professionnels NICHD avant tout développement.**
 > Date de rédaction : 2026-06-21.
@@ -368,8 +373,8 @@ Critère d'acceptation : (a) test avec état signal=true : P5 n'est jamais prés
 (b) l'orientation 119 est affichée à chaque session suivante dans l'espace parent,
 (c) Billy ne pose aucune question ouverte sur le sujet sensible en mode post-signal.
 
-**BILLY-107 — Délai minimum inter-sessions (24 h, côté serveur)**
-Etat : à faire | Dépend de : BILLY-104
+**BILLY-107 — Délai minimum inter-sessions (24 h, côté serveur) — ❌ ANNULÉ (décision 2026-06-21)**
+Etat : ANNULÉ — pas de délai imposé, on peut reprendre quand on veut. | Dépend de : —
 Intitulé : Implémenter le délai minimum de 24 h entre deux sessions sur le même
 dossier. Le délai est appliqué silencieusement, sans explication à l'enfant.
 Critère d'acceptation : (a) une tentative de démarrer une session < 24 h après la

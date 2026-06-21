@@ -11,7 +11,7 @@
 
 'use strict';
 
-export const MIN_GAP_MS = 24 * 60 * 60 * 1000; // délai mini entre 2 séances (24 h)
+// (Le délai minimum entre séances a été retiré : on peut reprendre quand on veut.)
 
 // Seules ces clés sont autorisées dans l'état persistant. Tout le reste = contenu interdit.
 const ALLOWED_KEYS = new Set(['phaseId', 'lastSessionTs', 'sessionsCount']);
@@ -29,16 +29,6 @@ export function assertNoContent(state) {
   if (state.phaseId !== null && typeof state.phaseId !== 'string' && typeof state.phaseId !== 'number')
     throw new Error('navState: phaseId doit être un identifiant de navigation, pas du contenu');
   return state;
-}
-
-/** Peut-on démarrer une nouvelle séance maintenant ? (respect du délai mini, anti-usage compulsif) */
-export function canStartNewSession(state, now, minGap = MIN_GAP_MS) {
-  if (!state || !state.lastSessionTs) return true;
-  return now - state.lastSessionTs >= minGap;
-}
-export function msUntilNextSession(state, now, minGap = MIN_GAP_MS) {
-  if (!state || !state.lastSessionTs) return 0;
-  return Math.max(0, minGap - (now - state.lastSessionTs));
 }
 
 /** Avance la navigation à la phase donnée (identifiant de navigation uniquement). */
