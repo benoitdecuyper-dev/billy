@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "defaultMode": "acceptEdits",
+    "allow": [
+      "Edit",
+      "Write",
+      "Bash(npm *)",
+      "Bash(npx *)",
+      "Bash(node *)",
+      "Bash(git *)",
+      "Bash(mkdir *)",
+      "Bash(ls *)",
+      "Bash(cp *)",
+      "Bash(mv *)",
+      "Bash(cat *)",
+      "Bash(find *)",
+      "Bash(curl *)",
+      "PowerShell(npm *)",
+      "PowerShell(node *)",
+      "PowerShell(git *)",
+      "PowerShell(New-Item *)",
+      "PowerShell(Get-ChildItem *)",
+      "PowerShell(Copy-Item *)",
+      "WebFetch(domain:github.com)",
+      "WebSearch"
+    ]
+  }
+}

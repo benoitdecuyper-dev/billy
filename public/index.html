@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#7c6cf0" />
+  <title>Billy</title>
+  <link rel="stylesheet" href="/css/styles.css" />
+</head>
+<body>
+  <main class="app" role="main">
+    <!-- Avatar Billy (placeholder — l'illustration définitive viendra de billy-conception-vocale-enfant) -->
+    <figure class="billy" aria-label="Billy, ton amie qui t'écoute">
+      <div class="billy__face">
+        <span class="billy__eye"></span>
+        <span class="billy__eye"></span>
+        <span class="billy__smile"></span>
+      </div>
+      <figcaption class="billy__name">Billy</figcaption>
+    </figure>
+
+    <p class="billy__hello">Coucou, moi c'est Billy. Je suis un personnage sur ton téléphone et je suis là pour t'écouter.</p>
+
+    <!-- Bouton de la boucle vocale (non connecté — squelette, cf. src/voice) -->
+    <button class="mic" type="button" disabled aria-disabled="true">
+      🎤 Parler avec Billy
+      <small>(bientôt disponible)</small>
+    </button>
+
+    <p class="disclaimer">
+      Billy n'est pas un service d'urgence. En cas de danger, un adulte peut appeler le
+      <strong>119</strong> (gratuit, 24h/24).
+    </p>
+  </main>
+</body>
+</html>
