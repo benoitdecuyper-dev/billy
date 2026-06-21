@@ -15,7 +15,7 @@ par l'adulte). Voir `docs/cible-2-5-ans.md`.
 ## État
 
 **Prototype fonctionnel, prêt-pour-prod côté technique** (contenu neutre, à valider).
-`npm start` → `http://localhost:3000` : accueil → **espace adulte** (préface + questionnaire) →
+`npm start` → `http://localhost:3000` : accueil → **espace parent** (préface + questionnaire) →
 **séance temps réel** (voix live, mains-libres, Modèle A + filtre anti-suggestion) → **rapport PDF**.
 PWA installable. Voir **`docs/00-ETAT-ET-PROD.md`** (état + chemin vers la prod) et
 **`docs/00-POUR-VALIDATION-PRO.md`** (dossier pros). **Rien ne doit servir avec un vrai enfant

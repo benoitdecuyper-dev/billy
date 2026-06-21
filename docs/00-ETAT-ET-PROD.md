@@ -9,8 +9,8 @@ Parcours complet, **content-driven**, qui marche sur téléphone :
 
 | URL | Quoi |
 |---|---|
-| **/** | Accueil → « Espace adulte » |
-| **/adulte.html** | Préface adulte : **questionnaire « pourquoi »** + repères de posture → « donner Billy à l'enfant » |
+| **/** | Accueil → « Espace parent » |
+| **/adulte.html** | Préface parent : **questionnaire « pourquoi »** + repères de posture → « donner Billy à l'enfant » |
 | **/session.html** | **Séance temps réel** : Billy parle (voix live), écoute (mains-libres), **reprend le mot de l'enfant** (Modèle A), filtre anti-suggestion avant chaque phrase, **rapport PDF** en fin |
 | /appairage.html | **2ᵉ téléphone observateur** (QR + audio/vidéo live, passif) |
 | /demo.html | Démo « vitrine » : voix chaleureuse pré-enregistrée + animations gym/rugby |

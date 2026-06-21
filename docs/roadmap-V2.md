@@ -77,7 +77,7 @@ Billy va faire, comment réagir, et la marche à suivre/orientation.
 ## V2-5 — Cadrage du motif (intégré à la préface) — ✅ SIMPLIFIÉ (2026-06-21)
 
 > **Décision : pas de cadrage vocal temps réel séparé pour l'instant.** Le besoin est couvert
-> par un **questionnaire rapide « pourquoi venez-vous ? »** intégré à la **préface adulte**
+> par un **questionnaire rapide « pourquoi venez-vous ? »** intégré à la **préface parent**
 > (`public/adulte.html`) : précaution / doute / suspicion précise / situation en institution +
 > note libre. **Cloisonné** : l'info sert au suivi/orientation et au rapport, **jamais** transmise
 > à Billy ni à ses questions à l'enfant. *(La version « échange vocal temps réel » reste une piste
@@ -106,7 +106,7 @@ la préface *explique* la posture ; le cadrage *écoute* le parent.
 
 ## V2-6 — Vidéo tuto pour les parents — ❌ ABANDONNÉ (2026-06-21)
 
-> **Décision : pas de vidéo tuto pour l'instant — la préface adulte (`adulte.html`) couvre le
+> **Décision : pas de vidéo tuto pour l'instant — la préface parent (`adulte.html`) couvre le
 > besoin** (repères de posture + que faire). Détail conservé ci-dessous pour mémoire.
 
 ### (archive) Vidéo tuto pour les parents
@@ -127,5 +127,5 @@ suivre.
 
 ## Backlog
 À intégrer comme épopées : **BILLY-E12** (trace audio), **BILLY-E13** (2ᵉ téléphone /
-co-observation Barnahus), **BILLY-E14** (préface adulte). Toutes **bloquées** tant que les
+co-observation Barnahus), **BILLY-E14** (préface parent). Toutes **bloquées** tant que les
 conditions (validation pro + DPIA + cadre sécurité) ne sont pas levées.
