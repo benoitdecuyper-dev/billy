@@ -97,7 +97,15 @@
         {"id": "P6-3", "type": "reaction", "statut": "brouillon",
          "formulation": "Je ne peux pas te promettre de garder ça pour moi, parce que mon rôle est de te protéger. Mais tu as bien fait de le dire, et tu ne resteras pas tout seul avec ça.",
          "intention": "Ne jamais promettre le secret, tout en restant rassurant.",
-         "justification": "« Je vais garder ton secret » est PROSCRIT ; formule de protegernosenfants.", "source": "CIIVISE (interdits) / protegernosenfants"}
+         "justification": "« Je vais garder ton secret » est PROSCRIT ; formule de protegernosenfants.", "source": "CIIVISE (interdits) / protegernosenfants"},
+        {"id": "P6-4", "type": "reaction", "statut": "proposé",
+         "formulation": "Personne n'a le droit de te faire ça.",
+         "intention": "Poser l'interdit, déculpabiliser, sans nommer l'acte ni l'auteur.",
+         "justification": "Phrase « à privilégier » du guide parents.", "source": "Guide VSM Ville de Paris"},
+        {"id": "P6-5", "type": "reaction", "statut": "proposé",
+         "formulation": "Tu as le droit de me dire tout ce qui est important pour toi, je suis là pour toi.",
+         "intention": "Ouvrir la parole sans presser, rassurer.",
+         "justification": "Phrase « à privilégier » du guide parents.", "source": "Guide VSM Ville de Paris"}
       ]
     },
     {
