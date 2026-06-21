@@ -55,10 +55,12 @@ Présentée comme une **marche à suivre standard** (jamais comme un diagnostic)
 - Le **récap** et les **signaux** sont produits par une **logique transparente et auditable**
   (mots-clés/règles validés par les pros), pas une « boîte noire » qui décide. En V1, on
   **n'utilise pas de résumé IA libre** : on horodate le verbatim + on coche des signaux prédéfinis.
+- **Format d'export : `.docx` (Word)** — choisi pour sa simplicité (lisible, imprimable,
+  transmissible, annotable par un professionnel). Généré côté appareil.
 - **RGPD — données ultra-sensibles** (mineur + santé + pénal) : pas de stockage cloud par
-  défaut ; rapport **généré localement**, **exportable** (PDF) pour être remis au professionnel ;
-  chiffrement si conservé ; suppression facile ; **aucun analytics**, aucune revente. Cf.
-  `rgpd-donnees-sensibles.md`.
+  défaut ; rapport **généré localement**, **exportable (.docx)** pour être remis au
+  professionnel ; chiffrement si conservé ; suppression facile ; **aucun analytics**, aucune
+  revente. Cf. `rgpd-donnees-sensibles.md`.
 - **Transparence** : l'enfant et l'adulte savent qu'un compte rendu est produit, et à quoi il sert.
 - **Destinataire maîtrisé** : penser qui peut générer/voir le rapport (espace parent verrouillé),
   compte tenu du conflit d'intérêts possible.

@@ -33,19 +33,17 @@ avec l'enfant, un autre qui observe derrière la vitre).
   - Le QR encode un **jeton d'appairage à usage unique, à durée de vie courte**, lié à une
     session chiffrée (pas un identifiant devinable, pas un lien public).
 - **Cas d'usage fort** : un professionnel (119, psy, enquêteur) accompagne à distance.
-- **Garde-fous critiques** (cette fonctionnalité est la plus sensible du projet) :
-  - **Appairage contrôlé et authentifié** : seul un destinataire **explicitement autorisé** y
-    accède (jamais un lien ouvert).
-  - **Conflit d'intérêts MAJEUR** : le détenteur de l'autorité parentale **peut être l'auteur**.
-    Le 2ᵉ téléphone **ne doit pas** pouvoir être un agresseur potentiel → réfléchir à un
-    appairage via un **tiers de confiance / professionnel**, pas « n'importe quel parent ».
-  - **L'observateur observe, ne pilote pas** : il ne doit pas pouvoir souffler/induire des
-    questions (risque de contamination). Comme à Barnahus : il **note des points**, il ne
-    **mène pas**.
-  - **Sécurité** : flux **chiffré de bout en bout**, aucune fuite tierce, aucun enregistrement
-    par le 2ᵉ appareil sans le même cadre légal que V2-1.
-  - **Transparence** : l'enfant sait qu'une personne suit la conversation.
-- **À valider impérativement** avec juriste + DPO + professionnels avant toute conception.
+- **Principe retenu (simplifié) : observateurs strictement PASSIFS.** On peut connecter
+  **plusieurs téléphones** qui **voient et entendent** la conversation, mais qui **ne peuvent en
+  rien interférer** : aucun canal de retour vers Billy ou l'enfant, pas de micro renvoyé, pas de
+  message, pas de « souffler » une question. **Lecture seule.** Du coup, le risque de
+  contamination tombe de lui-même, et on ne se prend pas la tête sur « qui appaire » : un
+  observateur, même mal intentionné, **ne peut rien changer** au déroulé.
+- **Garde-fous restants** :
+  - **Appairage par QR** : jeton à usage unique, courte durée, session chiffrée.
+  - **Sécurité** : flux **chiffré de bout en bout**, aucune fuite tierce ; pas d'enregistrement
+    par l'observateur sans le même cadre légal que V2-1.
+  - **Transparence** : l'enfant sait qu'une ou plusieurs personnes suivent la conversation.
 
 ## V2-3 — Préface IA pour l'adulte (onboarding posture)
 
