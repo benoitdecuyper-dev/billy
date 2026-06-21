@@ -10,7 +10,7 @@
 import PDFDocument from 'pdfkit';
 import { createWriteStream } from 'node:fs';
 
-const PINK = '#EC6A9C';
+const PINK = '#EC7A1E'; // orange (identité du site)
 const GREEN = '#2F8A55';
 const MUTED = '#7A6F77';
 const INK = '#3F3640';

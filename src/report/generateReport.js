@@ -16,7 +16,7 @@ import {
 } from 'docx';
 import { writeFile } from 'node:fs/promises';
 
-const PINK = 'EC6A9C';
+const PINK = 'EC7A1E'; // orange (identité du site)
 const MUTED = '7A6F77';
 
 const para = (text, opts = {}) => new Paragraph({ children: [new TextRun({ text, ...opts })], spacing: { after: 120 } });
