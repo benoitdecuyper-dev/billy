@@ -47,9 +47,9 @@ body {
 .app[data-state="listening"] .billy { animation: breathe 4s ease-in-out infinite; }
 @keyframes breathe { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
 
-/* léger rebond quand il parle */
-.app[data-state="speaking"] .billy { animation: bob .5s ease-in-out infinite; }
-@keyframes bob { 0%,100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-3px) scale(1.02); } }
+/* léger rebond quand il parle (doux) */
+.app[data-state="speaking"] .billy { animation: bob .9s ease-in-out infinite; }
+@keyframes bob { 0%,100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-2px) scale(1.01); } }
 
 /* ondes d'écoute */
 .ring { position: absolute; top: 50%; left: 50%; width: 200px; height: 200px; margin: -100px 0 0 -100px;
@@ -119,9 +119,10 @@ body {
 .frame-gym, .frame-rugby { opacity: 0; }
 .billy[data-anim] { animation: none !important; } /* on laisse la frame s'animer, pas le parent */
 .billy[data-anim] .frame-closed, .billy[data-anim] .frame-talk { opacity: 0; }
-.billy[data-anim="gym"] .frame-gym { opacity: 1; transform-origin: 50% 55%; animation: billy-gym 1.1s linear infinite; }
-.billy[data-anim="rugby"] .frame-rugby { opacity: 1; animation: billy-rugby .5s ease-in-out infinite; }
-/* roue / roulade : rotation complète avec un petit envol */
-@keyframes billy-gym { 0% { transform: rotate(0) translateY(0); } 50% { transform: rotate(180deg) translateY(-10px); } 100% { transform: rotate(360deg) translateY(0); } }
-@keyframes billy-rugby { 0%,100% { transform: translateX(-12px) translateY(0); } 50% { transform: translateX(12px) translateY(-7px); } }
+.billy[data-anim="gym"] .frame-gym { opacity: 1; transform-origin: 50% 50%; animation: billy-gym 2.4s ease-in-out infinite; }
+.billy[data-anim="rugby"] .frame-rugby { opacity: 1; animation: billy-rugby .9s ease-in-out infinite; }
+/* UNE seule roue, douce, puis pause (l'image est détourée : seul l'écureuil tourne) */
+@keyframes billy-gym { 0% { transform: rotate(0deg); } 45% { transform: rotate(360deg); } 100% { transform: rotate(360deg); } }
+/* course : va-et-vient fluide avec un léger balancement (pas de saccade) */
+@keyframes billy-rugby { 0%,100% { transform: translateX(-16px) rotate(-3deg); } 50% { transform: translateX(16px) translateY(-5px) rotate(3deg); } }
 @media (prefers-reduced-motion: reduce) { .billy[data-anim] .frame-gym, .billy[data-anim] .frame-rugby { animation: none !important; } }
