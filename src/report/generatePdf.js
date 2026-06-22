@@ -145,6 +145,60 @@ function renderDemarche(doc, s) {
   footer(doc, "Numéros : 119 (enfance en danger, 24/7, gratuit) · 17/112 (danger immédiat) · 15/18 (urgence médicale) · 3018 (cyberviolences).");
 }
 
+// ---------- 3) Rapport consolidé multi-sessions (BILLY-112) ----------
+function renderConsolidated(doc, c) {
+  title(doc, 'Rapport consolidé — Billy');
+  subtitle(doc, "Compte rendu factuel multi-séances, sans interprétation ni synthèse. Chaque séance est rapportée séparément, dans les mots de l'enfant. Billy n'est ni un diagnostic ni une preuve.");
+
+  heading(doc, 'Informations');
+  kv(doc, 'Enfant (déclaré)', `${c.enfant.prenom}, ${c.enfant.age}`);
+  kv(doc, 'Nombre de séances', String(c.nombreSessions));
+  kv(doc, 'Période', `${c.periode.debut} → ${c.periode.fin}`);
+  kv(doc, 'Version du script', c.version);
+
+  for (const b of c.sessions) {
+    heading(doc, `Séance ${b.numero} — ${b.date}`);
+    kv(doc, 'Début / fin', `${b.debut} → ${b.fin}`);
+    kv(doc, 'Durée', b.duree);
+    if (b.phases && b.phases.length) kv(doc, 'Phases parcourues', b.phases.join(', '));
+    doc.moveDown(0.2);
+    doc.font('Helvetica-Bold').fontSize(10.5).fillColor(INK).text('Déroulé (mot pour mot) :');
+    doc.moveDown(0.1);
+    for (const t of b.tours) {
+      const isChild = t.acteur === 'Enfant';
+      doc.fontSize(10.5);
+      doc.font('Helvetica').fillColor(MUTED).text(`[${t.heure}] `, { continued: true });
+      doc.font('Helvetica-Bold').fillColor(isChild ? GREEN : PINK).text(`${t.acteur} : `, { continued: true });
+      doc.font(isChild ? 'Helvetica-Oblique' : 'Helvetica').fillColor(INK).text(isChild ? `« ${t.texte} »` : t.texte);
+      doc.moveDown(0.15);
+    }
+    doc.moveDown(0.2);
+    doc.font('Helvetica-Bold').fontSize(10.5).fillColor(INK).text('Signaux repérés cette séance : ', { continued: true });
+    doc.font('Helvetica').fillColor(INK).text(b.signaux.length ? '' : 'aucun');
+    for (const sig of b.signaux) bullet(doc, sig);
+  }
+
+  heading(doc, 'Récapitulatif consolidé');
+  note(doc, "Inventaire factuel des signaux, séance par séance. Aucun croisement entre séances, aucune conclusion : ce travail revient au professionnel.");
+  if (c.recapitulatif.signauxParSession.length) {
+    for (const x of c.recapitulatif.signauxParSession) {
+      doc.font('Helvetica-Bold').fontSize(10.5).fillColor(INK).text(`Séance ${x.session} : `, { continued: true });
+      doc.font('Helvetica').fillColor(INK).text(x.signaux.join(' ; '));
+      doc.moveDown(0.1);
+    }
+  } else {
+    doc.font('Helvetica').fontSize(10.5).fillColor(INK).text('Aucun signal repéré sur l\'ensemble des séances.');
+  }
+  doc.moveDown(0.2);
+  doc.font('Helvetica-Bold').fontSize(11).fillColor(PINK).text('Niveau global : ', { continued: true });
+  doc.font('Helvetica').fontSize(10.5).fillColor(INK).text(c.recapitulatif.niveauGlobal);
+  doc.moveDown(0.1);
+  doc.font('Helvetica-Bold').fontSize(11).fillColor(PINK).text('Démarche : ', { continued: true });
+  doc.font('Helvetica').fontSize(10.5).fillColor(INK).text(c.recapitulatif.demarche);
+
+  footer(doc, "Document généré localement. Données ultra-sensibles : à transmettre uniquement aux personnes habilitées, puis à supprimer si non nécessaire. Numéros : 119 · 17/112 · 15 · 3018.");
+}
+
 function write(render, session, path) {
   return new Promise((resolve, reject) => {
     const stream = createWriteStream(path);
@@ -158,8 +212,10 @@ function write(render, session, path) {
 
 export const writeReportPdf = (session, path) => write(renderReport, session, path);
 export const writeDemarchePdf = (session, path) => write(renderDemarche, session, path);
+export const writeConsolidatedPdf = (consolidated, path) => write(renderConsolidated, consolidated, path);
 
 // Variante streaming : écrit le PDF directement dans une réponse HTTP (ou tout writable).
 function pipeTo(render, session, stream) { const doc = new PDFDocument({ size: 'A4', margin: 50 }); doc.pipe(stream); render(doc, session); doc.end(); }
 export const streamReportPdf = (session, stream) => pipeTo(renderReport, session, stream);
 export const streamDemarchePdf = (session, stream) => pipeTo(renderDemarche, session, stream);
+export const streamConsolidatedPdf = (consolidated, stream) => pipeTo(renderConsolidated, consolidated, stream);
