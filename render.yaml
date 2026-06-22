@@ -16,7 +16,7 @@ services:
       - key: NODE_ENV
         value: production
       - key: BILLY_LLM_MODEL
-        value: claude-opus-4-8
+        value: claude-haiku-4-5
       # Sélecteur LLM : sans clé, Billy tourne en repli déterministe (la démo marche quand même).
       - key: ANTHROPIC_API_KEY
         sync: false

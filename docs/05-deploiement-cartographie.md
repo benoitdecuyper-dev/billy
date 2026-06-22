@@ -27,7 +27,7 @@ Render fournit le TLS au edge.
 | Variable | Secret | Rôle | Valeur |
 |----------|:------:|------|--------|
 | `NODE_ENV` | non | Mode | `production` |
-| `BILLY_LLM_MODEL` | non | Modèle LLM | `claude-opus-4-8` |
+| `BILLY_LLM_MODEL` | non | Modèle LLM (sélecteur) | `claude-haiku-4-5` |
 | `ANTHROPIC_API_KEY` | **oui** | Sélecteur LLM | *(env Render, sync:false)* |
 | `ELEVENLABS_API_KEY` | **oui** | Voix | *(env Render, sync:false)* |
 | `ELEVENLABS_VOICE_ID` | **oui** | Voix « Chloé » | *(env Render, sync:false)* |

@@ -65,7 +65,7 @@ Il ne produit **aucun texte prononcé**. Son espace de sortie est :
 
 ## 5. Configuration
 
-`.env` : `ANTHROPIC_API_KEY` + `BILLY_LLM_MODEL` (défaut `claude-opus-4-8`). Voir `.env.example`.
+`.env` : `ANTHROPIC_API_KEY` + `BILLY_LLM_MODEL` (défaut `claude-haiku-4-5` — le sélecteur ne fait que choisir une réplique, Haiku suffit et coûte ~5× moins). Voir `.env.example`.
 
 ## 6. Ce qui reste un GATE (pas du code)
 

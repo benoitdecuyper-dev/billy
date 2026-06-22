@@ -44,7 +44,7 @@ function llmAvailable() { return !!process.env.ANTHROPIC_API_KEY; }
 async function selectViaLLM(prompt, { timeoutMs = 4000 } = {}) {
   const key = process.env.ANTHROPIC_API_KEY;
   if (!key || !prompt) return null;
-  const model = process.env.BILLY_LLM_MODEL || 'claude-opus-4-8';
+  const model = process.env.BILLY_LLM_MODEL || 'claude-haiku-4-5';
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), timeoutMs);
   try {
