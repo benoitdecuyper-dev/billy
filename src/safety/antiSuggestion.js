@@ -174,6 +174,27 @@ function audit(text, state = {}) {
     const asked = (state && state.askedQuestions) || [];
     if (c && asked.map(canon).includes(c)) return block('REPEAT_QUESTION', 'question déjà posée');
 
+    // 15. Anti-réinjection multi-sessions (BILLY-108) — aucun énoncé ne référence le contenu
+    //     d'une séance antérieure : « la dernière fois », « tu m'avais dit », « on reprend »...
+    //     La continuité est SILENCIEUSE (navigation seule). Voir docs/V2-multi-seances_PO.md §4.
+    //     N.B. : « raconte-moi ta journée d'hier » reste autorisé (sujet neutre, pas une référence
+    //     à ce que l'enfant a confié) ; on ne bloque que les renvois explicites au passé partagé.
+    const REINJECTION = [
+      /\b(la|une) (derniere|premiere|precedente|autre) fois\b/,
+      /\bla fois (d'? ?avant|precedente|derniere|ou)\b/,
+      /\bl'autre (fois|jour)\b/,
+      /\btu m'?(avais|as) (dit|parle|parlais|raconte|racontes|confie|dis|montre)\b/,
+      /\bce que tu m'?(as|avais) (dit|raconte|confie|montre)\b/,
+      /\bcomme tu (m'as|me l'as|m'avais) (dit|raconte)\b/,
+      /\bon (reprend|continue|recommence|avait commence|s'etait arrete|s etait arrete)\b/,
+      /\bla ou (on|tu|nous)\b.{0,15}\b(arrete|arretes|reste|etait|etais)\b/,
+      /\bdepuis (la derniere fois|qu'on|notre derniere)\b/,
+      /\btu te (souviens|rappelles?) (de |que |quand |la |ce que|notre|notre derniere)\b/,
+      /\b(la semaine|le mois|le jour) (derniere|dernier|d'avant|precedente|precedent)\b/,
+      /\bquand (on|tu|nous) (s'est|s est|s'etait|t'es|t es) (vu|vus|parle|parles|arrete|arretes)\b/,
+    ];
+    for (const re of REINJECTION) if (re.test(n)) return block('REINJECTION_PAST', 'référence à une séance antérieure (réinjection)');
+
     return PASS;
   } catch (e) {
     return block('ERROR', 'exception audit : ' + (e && e.message));

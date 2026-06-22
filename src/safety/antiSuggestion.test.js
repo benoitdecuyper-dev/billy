@@ -91,6 +91,43 @@ test('audit : le répertoire neutre passe l\'audit', () => {
   for (const l of REPERTOIRE) auditPasses(l);
 });
 
+/* ---------- BILLY-108 : anti-réinjection multi-sessions ---------- */
+// 20 énoncés qui référencent une séance antérieure : tous BLOQUÉS par REINJECTION_PAST.
+const REINJECTION_ATTAQUES = [
+  "la dernière fois on en a parlé.",
+  "la fois d'avant tu avais commencé à raconter.",
+  "l'autre fois c'était chouette.",
+  "l'autre jour on a discuté ensemble.",
+  "tu m'avais dit quelque chose d'important.",
+  "tu m'avais parlé de tout ça.",
+  "tu m'avais raconté une histoire.",
+  "ce que tu m'as confié était important.",
+  "comme tu m'avais dit, on continue.",
+  "on reprend là où on s'était arrêtés.",
+  "on recommence notre discussion.",
+  "on avait commencé tranquillement.",
+  "là où on s'était arrêté, tu parlais.",
+  "depuis la dernière fois, tout va bien.",
+  "depuis notre dernière fois, tout va bien.",
+  "tu te souviens de notre discussion.",
+  "tu te rappelles ce que tu disais.",
+  "la semaine dernière tu pleurais.",
+  "le mois dernier on a discuté.",
+  "quand tu t'es arrêté, j'ai attendu.",
+];
+test('BILLY-108 : les 20 réinjections du passé sont BLOQUÉES', () => {
+  assert.equal(REINJECTION_ATTAQUES.length, 20);
+  for (const a of REINJECTION_ATTAQUES) auditBlocks(a, 'REINJECTION_PAST');
+});
+
+// Faux positifs : la continuité SILENCIEUSE légitime ne doit pas être bloquée.
+test('BILLY-108 : « raconte-moi ta journée d\'hier » (sujet neutre) PASSE', () =>
+  auditPasses("Pour commencer tout doucement, raconte-moi ta journée d'hier. Prends ton temps."));
+test('BILLY-108 : accueil de retour « tu te souviens, tu peux me corriger » PASSE', () =>
+  auditPasses("Tu te souviens, tu peux me corriger si je dis quelque chose de faux."));
+test('BILLY-108 : P4 retour sur sujet neutre différent PASSE', () =>
+  auditPasses("raconte-moi ce que tu as fait aujourd'hui."));
+
 /* ---------- Fail-closed ---------- */
 test('evaluate vide => BLOCK', () => evalBlocks("", 'EMPTY'));
 test('evaluate null => BLOCK', () => evalBlocks(null, 'EMPTY'));
