@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#ec7a1e" />
+  <title>Billy — aperçu des animations</title>
+  <link rel="stylesheet" href="/css/styles.css?v=4" />
+  <style>
+    body { margin: 0; background: radial-gradient(120% 70% at 50% -10%, #fff, #fff2e3 45%, #ffe7d2); min-height: 100dvh; font-family: "Segoe UI", system-ui, sans-serif; color: #4f4438; }
+    .head { text-align: center; padding: 1.4rem 1rem .2rem; }
+    .head h1 { color: #ec7a1e; margin: 0; font-size: 1.3rem; }
+    .head p { color: #998a78; font-size: .9rem; margin: .3rem 0 0; }
+    .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: .5rem; max-width: 760px; margin: 0 auto; padding: 1rem; }
+    .cell { background: #fff; border-radius: 20px; box-shadow: 0 8px 24px rgba(236,122,30,.1); padding: .6rem; display: flex; flex-direction: column; align-items: center; }
+    .cell .billy { width: 200px; height: 200px; }
+    .cell .label { font-weight: 800; color: #ec7a1e; margin-top: .2rem; }
+    .cell .sub { color: #998a78; font-size: .82rem; }
+    @media (max-width: 520px) { .grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="head">
+    <h1>Billy — aperçu des animations 🌰</h1>
+    <p>Les 4 mouvements de la phase d'accueil, en boucle. (Page de test)</p>
+  </div>
+
+  <main class="app" data-state="speaking" style="display:block;min-height:auto;">
+    <div class="grid">
+      <div class="cell">
+        <figure class="billy" data-anim="gym" aria-label="gym"><img class="frame frame-gym" src="/assets/billy-gym.png?v=4" alt="" /></figure>
+        <div class="label">🤸 Gym <span class="sub">— une roue</span></div>
+      </div>
+      <div class="cell">
+        <figure class="billy" data-anim="rugby" aria-label="rugby"><img class="frame frame-rugby" src="/assets/billy-rugby.png?v=4" alt="" /></figure>
+        <div class="label">🏉 Rugby <span class="sub">— il court</span></div>
+      </div>
+      <div class="cell">
+        <figure class="billy" data-anim="foot" aria-label="foot"><img class="frame frame-foot" src="/assets/billy-foot.png?v=4" alt="" /></figure>
+        <div class="label">⚽ Foot <span class="sub">— il shoote</span></div>
+      </div>
+      <div class="cell">
+        <figure class="billy" data-anim="danse" aria-label="danse"><img class="frame frame-danse" src="/assets/billy-danse.png?v=4" alt="" /></figure>
+        <div class="label">💃 Danse <span class="sub">— il se balance</span></div>
+      </div>
+    </div>
+  </main>
+</body>
+</html>
