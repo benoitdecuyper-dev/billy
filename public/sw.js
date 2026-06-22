@@ -1,9 +1,9 @@
 /* Billy — service worker minimal (installable PWA + cache de l'app shell).
  * Stratégie : cache-first pour les assets statiques ; on ne met JAMAIS en cache les API
  * (/api/*, /lib/*) ni les flux temps réel. */
-const CACHE = 'billy-v1';
+const CACHE = 'billy-v2';
 const SHELL = [
-  '/adulte.html', '/session.html', '/css/styles.css', '/js/session.js',
+  '/adulte.html', '/session.html', '/sessions.html', '/css/styles.css', '/js/session.js',
   '/assets/billy.png', '/assets/billy-talk.png', '/manifest.json',
 ];
 

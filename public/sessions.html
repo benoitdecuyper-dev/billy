@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#ec7a1e" />
+  <title>Billy — séances (espace parent)</title>
+  <link rel="manifest" href="/manifest.json" />
+  <style>
+    :root { --orange:#ec7a1e; --orange-l:#ffb15c; --ink:#4f4438; --muted:#998a78; --ok:#6bbf8a; --red:#c23b57; }
+    *{box-sizing:border-box;} body{margin:0;font-family:"Segoe UI",system-ui,sans-serif;color:var(--ink);
+      background:radial-gradient(120% 70% at 50% -10%,#fff,#fff2e3 45%,#ffe7d2);min-height:100dvh;padding:1.5rem 1.2rem 3rem;}
+    .wrap{max-width:600px;margin:0 auto;}
+    header{text-align:center;} .billy{width:96px;height:96px;margin:0 auto;display:block;}
+    h1{color:var(--orange);font-size:1.3rem;margin:.4rem 0 0;}
+    .sub{color:var(--muted);margin-top:.2rem;font-size:.9rem;}
+    .card{background:#fff;border-radius:18px;padding:1.1rem 1.3rem;margin:1rem 0;box-shadow:0 8px 24px rgba(236,122,30,.1);}
+    label{font-size:.9rem;font-weight:600;display:block;margin-bottom:.3rem;}
+    input[type=password]{width:100%;border:1px solid #e3d6cc;border-radius:12px;padding:.7rem;font-size:1.1rem;letter-spacing:.2em;font-family:inherit;}
+    .btn{display:block;width:100%;border:none;text-align:center;text-decoration:none;cursor:pointer;
+      background:linear-gradient(180deg,var(--orange-l),var(--orange));color:#fff;font-size:1.05rem;font-weight:800;
+      padding:.95rem;border-radius:999px;box-shadow:0 10px 22px rgba(236,122,30,.35);margin-top:.9rem;}
+    .btn.ghost{background:#fff;color:var(--orange);border:2px solid var(--orange);box-shadow:none;}
+    .btn.danger{background:#fff;color:var(--red);border:2px solid var(--red);box-shadow:none;}
+    .sess{display:flex;justify-content:space-between;align-items:center;gap:.6rem;border:1px solid #f0e4d8;
+      border-radius:14px;padding:.7rem .9rem;margin:.5rem 0;}
+    .sess .meta{font-size:.92rem;} .sess .meta b{color:var(--ink);} .sess .meta small{color:var(--muted);display:block;}
+    .pill{font-size:.78rem;font-weight:700;padding:.25rem .6rem;border-radius:999px;white-space:nowrap;}
+    .pill.ok{background:#eaf7ef;color:#2f8a55;} .pill.warn{background:#fdeef1;color:var(--red);}
+    .empty{color:var(--muted);font-size:.92rem;text-align:center;padding:.6rem 0;}
+    .msg{font-size:.85rem;margin:.5rem 0 0;min-height:1.1em;} .msg.err{color:var(--red);}
+    .note{font-size:.8rem;color:var(--muted);line-height:1.45;margin:.6rem 0 0;}
+    .hidden{display:none;}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <img class="billy" src="/assets/billy.png" alt="Billy" />
+      <h1>Espace parent — séances</h1>
+      <p class="sub">Réservé à l'adulte. Protégé par votre code.</p>
+    </header>
+
+    <!-- Verrou code parental -->
+    <div class="card" id="lockCard">
+      <label for="code">Votre code parental</label>
+      <input id="code" type="password" inputmode="numeric" autocomplete="off" placeholder="••••" />
+      <button class="btn" id="openBtn">Ouvrir</button>
+      <p class="msg" id="lockMsg"></p>
+      <p class="note">Ce code chiffre les informations sur l'appareil (AES-256). Personne ne peut
+        les lire sans lui — Billy non plus. Choisissez-le à la première ouverture ; conservez-le.</p>
+    </div>
+
+    <!-- Liste des séances (déverrouillée) -->
+    <div class="card hidden" id="listCard">
+      <div id="list"></div>
+      <p class="note" id="listNote">Cet écran n'affiche que des repères (date, durée, signal éventuel).
+        <b>Aucun mot de votre enfant n'est conservé ni montré ici.</b></p>
+      <a class="btn" href="/session.html">Commencer une nouvelle séance 🌰</a>
+      <button class="btn ghost" id="demoBtn">+ Ajouter une séance (démonstration)</button>
+      <button class="btn danger" id="purgeBtn">Supprimer tout le dossier</button>
+      <p class="msg" id="listMsg"></p>
+      <p class="note">⚠️ Tant que la validation professionnelle et la DPIA ne sont pas finalisées,
+        l'enregistrement réel des séances reste désactivé : le bouton « démonstration » illustre
+        seulement l'affichage. Le rapport consolidé (qui inclut le verbatim) n'est pas conservé
+        entre les séances.</p>
+    </div>
+  </div>
+
+  <script type="module">
+    import { loadSessions, saveSessions, purgeAll, localStorageAdapter } from '/lib/secureStore.js';
+    import { addSessionMeta } from '/lib/sessionMeta.js';
+
+    const storage = localStorageAdapter();
+    let code = null;
+
+    const $ = (id) => document.getElementById(id);
+    const lockCard = $('lockCard'), listCard = $('listCard');
+    const lockMsg = $('lockMsg'), listMsg = $('listMsg'), listEl = $('list');
+
+    function pad(n) { return String(n).padStart(2, '0'); }
+    function nowParts() {
+      const d = new Date();
+      return {
+        date: `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`,
+        debut: `${pad(d.getHours())}:${pad(d.getMinutes())}`,
+        fin: `${pad(d.getHours())}:${pad(d.getMinutes())}`,
+        duree: '—',
+      };
+    }
+
+    function render(list) {
+      listEl.innerHTML = '';
+      if (!list || !list.length) { listEl.innerHTML = '<p class="empty">Aucune séance enregistrée.</p>'; return; }
+      for (const s of list) {
+        const row = document.createElement('div'); row.className = 'sess';
+        const meta = document.createElement('div'); meta.className = 'meta';
+        meta.innerHTML = `<b>Séance ${s.n}</b> — ${s.date || '—'}<small>Durée : ${s.duree || '—'}</small>`;
+        const pill = document.createElement('span');
+        pill.className = 'pill ' + (s.signal ? 'warn' : 'ok');
+        pill.textContent = s.signal ? '⚠️ signal repéré' : '✅ aucun signal';
+        row.append(meta, pill); listEl.appendChild(row);
+      }
+    }
+
+    async function open() {
+      const c = $('code').value.trim();
+      if (c.length < 4) { lockMsg.textContent = 'Code trop court (4 caractères minimum).'; lockMsg.className = 'msg err'; return; }
+      code = c;
+      try {
+        const list = await loadSessions(storage, code); // null si rien, lève si code erroné
+        lockCard.classList.add('hidden'); listCard.classList.remove('hidden');
+        render(list || []);
+      } catch {
+        lockMsg.textContent = 'Code incorrect (ou données illisibles).'; lockMsg.className = 'msg err'; code = null;
+      }
+    }
+
+    async function addDemo() {
+      try {
+        const current = (await loadSessions(storage, code)) || [];
+        const next = addSessionMeta(current, { ...nowParts(), signal: Math.random() < 0.25 });
+        await saveSessions(storage, code, next);
+        render(next); listMsg.textContent = 'Séance de démonstration ajoutée.'; listMsg.className = 'msg';
+      } catch (e) { listMsg.textContent = 'Erreur : ' + e.message; listMsg.className = 'msg err'; }
+    }
+
+    function purge() {
+      if (!confirm('Supprimer définitivement tout le dossier (toutes les séances) ? Cette action est irréversible.')) return;
+      purgeAll(storage); render([]); listMsg.textContent = 'Dossier supprimé.'; listMsg.className = 'msg';
+    }
+
+    $('openBtn').addEventListener('click', open);
+    $('code').addEventListener('keydown', (e) => { if (e.key === 'Enter') open(); });
+    $('demoBtn').addEventListener('click', addDemo);
+    $('purgeBtn').addEventListener('click', purge);
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});
+  </script>
+</body>
+</html>

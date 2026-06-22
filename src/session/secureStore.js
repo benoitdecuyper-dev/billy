@@ -1,23 +1,23 @@
 /*
- * BILLY-104 — Persistance LOCALE et CHIFFRÉE de l'état inter-sessions.
+ * BILLY-104 — Persistance LOCALE et CHIFFRÉE de l'état inter-sessions + métadonnées de séances.
  * Réf. docs/V2-multi-seances_PO.md §6.2 (AES-256 au repos, clé dérivée du code parental).
  *
  * Garanties :
- *  - On ne persiste QUE de la navigation : assertNoContent() est appliqué AVANT chiffrement
- *    ET APRÈS déchiffrement. Aucun verbatim/émotion ne peut entrer dans le store (fail-closed).
+ *  - On ne persiste QUE de la navigation / des métadonnées : un validateur est appliqué AVANT
+ *    chiffrement ET APRÈS déchiffrement. Aucun verbatim/émotion ne peut entrer (fail-closed).
  *  - Chiffrement AES-GCM 256 bits, clé dérivée du CODE PARENTAL via PBKDF2-SHA256 (100k).
- *    Sans le code parental, l'état est indéchiffrable (et la clé n'est jamais stockée).
- *  - Purge = suppression du blob : les données deviennent irrécupérables (sel + IV + cipher
- *    sont l'unique copie ; rien d'autre ne permet de les reconstituer).
- *  - Environnement-agnostique : utilise globalThis.crypto (Node ≥ 20 et navigateurs).
- *    Le « storage » est injecté (localStorage côté navigateur, Map côté tests/serveur).
+ *    Sans le code parental, le store est indéchiffrable (la clé n'est jamais stockée).
+ *  - Purge = suppression du blob : données irrécupérables (sel + IV + cipher = unique copie).
+ *  - Environnement-agnostique : globalThis.crypto (Node ≥ 20 + navigateurs) ; storage injecté.
  */
 
 'use strict';
 
 import { assertNoContent } from './navState.js';
+import { assertSessionMetaList } from './sessionMeta.js';
 
-const STORAGE_KEY = 'billy.navstate.v1';
+const STATE_KEY = 'billy.navstate.v1';
+const SESSIONS_KEY = 'billy.sessions.v1';
 const PBKDF2_ITER = 100000;
 
 const subtle = () => globalThis.crypto.subtle;
@@ -50,40 +50,59 @@ async function deriveKey(parentalCode, salt) {
   );
 }
 
-/** Chiffre et persiste l'état (navigation uniquement). Lève si du contenu a fui. */
-export async function saveState(storage, parentalCode, state) {
-  assertNoContent(state); // périmètre §4.1 garanti AVANT de chiffrer quoi que ce soit
+/* --- Primitives chiffrées génériques (le périmètre est garanti par l'appelant) --- */
+async function encryptTo(storage, parentalCode, storageKey, data) {
   const salt = globalThis.crypto.getRandomValues(new Uint8Array(16));
   const iv = globalThis.crypto.getRandomValues(new Uint8Array(12));
   const key = await deriveKey(parentalCode, salt);
-  const plaintext = new TextEncoder().encode(JSON.stringify(state));
+  const plaintext = new TextEncoder().encode(JSON.stringify(data));
   const cipher = new Uint8Array(await subtle().encrypt({ name: 'AES-GCM', iv }, key, plaintext));
-  storage.setItem(STORAGE_KEY, JSON.stringify({ v: 1, salt: b64(salt), iv: b64(iv), ct: b64(cipher) }));
+  storage.setItem(storageKey, JSON.stringify({ v: 1, salt: b64(salt), iv: b64(iv), ct: b64(cipher) }));
   return true;
 }
-
-/**
- * Charge et déchiffre l'état. Renvoie null s'il n'y a rien.
- * Lève (fail-closed) si le code parental est erroné ou le blob altéré.
- */
-export async function loadState(storage, parentalCode) {
-  const raw = storage.getItem(STORAGE_KEY);
+async function decryptFrom(storage, parentalCode, storageKey) {
+  const raw = storage.getItem(storageKey);
   if (!raw) return null;
   const { salt, iv, ct } = JSON.parse(raw);
   const key = await deriveKey(parentalCode, ub64(salt));
-  let plainBuf;
   try {
-    plainBuf = await subtle().decrypt({ name: 'AES-GCM', iv: ub64(iv) }, key, ub64(ct));
+    const plainBuf = await subtle().decrypt({ name: 'AES-GCM', iv: ub64(iv) }, key, ub64(ct));
+    return JSON.parse(new TextDecoder().decode(plainBuf));
   } catch {
     throw new Error('secureStore: déchiffrement impossible (code parental erroné ou données altérées)');
   }
-  const state = JSON.parse(new TextDecoder().decode(plainBuf));
-  return assertNoContent(state); // re-vérifie le périmètre APRÈS déchiffrement
 }
 
-/** Purge complète et irréversible du dossier (BILLY-104 critère d). */
+/* --- État de navigation inter-sessions (périmètre = assertNoContent) --- */
+export async function saveState(storage, parentalCode, state) {
+  assertNoContent(state); // périmètre §4.1 garanti AVANT de chiffrer
+  return encryptTo(storage, parentalCode, STATE_KEY, state);
+}
+export async function loadState(storage, parentalCode) {
+  const data = await decryptFrom(storage, parentalCode, STATE_KEY);
+  return data == null ? null : assertNoContent(data); // re-vérifie APRÈS déchiffrement
+}
+
+/* --- Métadonnées de séances (périmètre = assertSessionMetaList) --- */
+export async function saveSessions(storage, parentalCode, list) {
+  assertSessionMetaList(list);
+  return encryptTo(storage, parentalCode, SESSIONS_KEY, list);
+}
+export async function loadSessions(storage, parentalCode) {
+  const data = await decryptFrom(storage, parentalCode, SESSIONS_KEY);
+  return data == null ? null : assertSessionMetaList(data);
+}
+
+/* --- Purge --- */
+/** Purge l'état de navigation. */
 export function purge(storage) {
-  storage.removeItem(STORAGE_KEY);
+  storage.removeItem(STATE_KEY);
+  return true;
+}
+/** Purge TOUT le dossier (état + métadonnées de séances) — irréversible (BILLY-104 / BILLY-111). */
+export function purgeAll(storage) {
+  storage.removeItem(STATE_KEY);
+  storage.removeItem(SESSIONS_KEY);
   return true;
 }
 
@@ -92,4 +111,6 @@ export function localStorageAdapter() {
   return globalThis.localStorage;
 }
 
-export { STORAGE_KEY };
+export { STATE_KEY, SESSIONS_KEY };
+// Rétro-compat : ancien nom de la clé d'état.
+export { STATE_KEY as STORAGE_KEY };

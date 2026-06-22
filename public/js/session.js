@@ -42,7 +42,32 @@ import { audit } from '/lib/antiSuggestion.js';
   function startFlap() { stopFlap(); flap = setInterval(() => billy.classList.toggle('open'), 140); }
   function stopFlap() { if (flap) { clearInterval(flap); flap = null; } billy.classList.remove('open'); }
 
-  function playUrl(url) { return new Promise((res) => { const a = new Audio(url); a.onended = res; a.onerror = res; a.play().catch(res); }); }
+  // V2-4 — Lip-sync RÉEL : la bouche s'ouvre selon l'amplitude de la voix (WebAudio), pas un
+  // clignotement fixe. Repli sur le flap si l'analyse audio n'est pas disponible.
+  let audioCtx = null;
+  function playUrl(url) {
+    return new Promise((res) => {
+      const a = new Audio(url);
+      let raf = null, analyser = null, data = null, ended = false;
+      const done = () => { if (ended) return; ended = true; if (raf) cancelAnimationFrame(raf); stopFlap(); billy.classList.remove('open'); res(); };
+      try {
+        audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume().catch(() => {});
+        const src = audioCtx.createMediaElementSource(a);
+        analyser = audioCtx.createAnalyser(); analyser.fftSize = 512;
+        src.connect(analyser); analyser.connect(audioCtx.destination);
+        data = new Uint8Array(analyser.frequencyBinCount);
+        const tick = () => {
+          analyser.getByteTimeDomainData(data);
+          let sum = 0; for (const v of data) { const x = (v - 128) / 128; sum += x * x; }
+          billy.classList.toggle('open', Math.sqrt(sum / data.length) > 0.05); // seuil d'ouverture
+          raf = requestAnimationFrame(tick);
+        };
+        tick();
+      } catch { startFlap(); } // WebAudio indisponible -> flap simple
+      a.onended = done; a.onerror = done; a.play().catch(done);
+    });
+  }
   function speakBrowser(text) {
     return new Promise((res) => {
       if (!('speechSynthesis' in window)) { res(); return; }
@@ -57,12 +82,11 @@ import { audit } from '/lib/antiSuggestion.js';
     const v = audit(text, { childLexicon: childWords });
     if (v.decision === 'BLOCK') text = OPEN_RELANCES[0]; // garde-fou : repli sur invitation ouverte
     recordTurn('Billy', text);
-    startFlap();
     try {
       const r = await fetch('/api/tts?text=' + encodeURIComponent(text));
-      if (r.ok) { const b = await r.blob(); await playUrl(URL.createObjectURL(b)); stopFlap(); return; }
+      if (r.ok) { const b = await r.blob(); await playUrl(URL.createObjectURL(b)); return; } // lip-sync géré dans playUrl
     } catch {}
-    await speakBrowser(text); stopFlap();
+    startFlap(); await speakBrowser(text); stopFlap(); // voix navigateur : pas d'analyse audio -> flap simple
   }
 
   // Écoute mains-libres (détection auto de fin de parole). Ne coupe jamais.

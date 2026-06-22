@@ -1,8 +1,9 @@
 /* Tests de la persistance locale chiffrée (BILLY-104). npm test */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { saveState, loadState, purge, STORAGE_KEY } from './secureStore.js';
+import { saveState, loadState, purge, purgeAll, saveSessions, loadSessions, STORAGE_KEY, SESSIONS_KEY } from './secureStore.js';
 import { advance, markSignal, emptyState } from './navState.js';
+import { addSessionMeta } from './sessionMeta.js';
 
 // Storage minimal en mémoire (équivalent localStorage pour les tests).
 function memStorage() {
@@ -64,4 +65,31 @@ test('BILLY-104 : purge rend les données irrécupérables', async () => {
 
 test('BILLY-104 : chargement sans dossier => null', async () => {
   assert.equal(await loadState(memStorage(), CODE), null);
+});
+
+test('BILLY-111 : métadonnées de séances chiffrées (aller-retour, rien en clair)', async () => {
+  const st = memStorage();
+  let list = addSessionMeta(null, { date: '01/06/2026', debut: '10:00', fin: '10:08', duree: '8 min', signal: false });
+  list = addSessionMeta(list, { date: '03/06/2026', debut: '18:00', fin: '18:05', duree: '5 min', signal: true });
+  await saveSessions(st, CODE, list);
+  const blob = st.getItem(SESSIONS_KEY);
+  assert.ok(!blob.includes('01/06/2026'), 'aucune date en clair');
+  const loaded = await loadSessions(st, CODE);
+  assert.equal(loaded.length, 2);
+  assert.equal(loaded[1].signal, true);
+});
+
+test('BILLY-111 : refus de persister du contenu dans les métadonnées', async () => {
+  const st = memStorage();
+  await assert.rejects(saveSessions(st, CODE, [{ n: 1, signal: false, verbatim: 'papa...' }]), /interdit/);
+});
+
+test('BILLY-111 : purgeAll efface état ET séances', async () => {
+  const st = memStorage();
+  await saveState(st, CODE, advance(emptyState(), 'P3', 1000));
+  await saveSessions(st, CODE, addSessionMeta(null, { date: '01/06/2026', signal: false }));
+  purgeAll(st);
+  assert.equal(st.getItem(STORAGE_KEY), null);
+  assert.equal(st.getItem(SESSIONS_KEY), null);
+  assert.equal(await loadSessions(st, CODE), null);
 });

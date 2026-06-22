@@ -12,7 +12,8 @@ import path from 'node:path';
 import { WebSocketServer } from 'ws';
 import QRCode from 'qrcode';
 import selfsigned from 'selfsigned';
-import { streamReportPdf } from '../report/generatePdf.js';
+import { streamReportPdf, streamConsolidatedPdf } from '../report/generatePdf.js';
+import { buildConsolidated } from '../report/consolidate.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PUBLIC_DIR = path.resolve(__dirname, '../../public');
@@ -97,13 +98,38 @@ async function handler(req, res) {
     return;
   }
 
-  // Sert le VRAI module anti-suggestion (testé) au prototype temps réel.
-  if (url.pathname === '/lib/antiSuggestion.js') {
-    try {
-      const data = await readFile(path.resolve(__dirname, '../safety/antiSuggestion.js'));
-      res.writeHead(200, { 'Content-Type': 'text/javascript; charset=utf-8' }); res.end(data);
-    } catch { res.writeHead(404); res.end('not found'); }
+  // Rapport CONSOLIDÉ multi-sessions en PDF (BILLY-112). Données sensibles : rien n'est
+  // stocké côté serveur. Le périmètre RGPD est garanti par buildConsolidated (BILLY-113).
+  if (url.pathname === '/api/report/consolidated' && req.method === 'POST') {
+    let body = '';
+    req.on('data', (c) => { body += c; if (body.length > 4e6) req.destroy(); });
+    req.on('end', () => {
+      let payload; try { payload = JSON.parse(body); } catch { res.writeHead(400); res.end('bad json'); return; }
+      const sessions = Array.isArray(payload) ? payload : payload.sessions;
+      let consolidated; try { consolidated = buildConsolidated(sessions); } catch { res.writeHead(400); res.end('bad sessions'); return; }
+      res.writeHead(200, { 'Content-Type': 'application/pdf', 'Content-Disposition': 'inline; filename="rapport-consolide-billy.pdf"', 'Cache-Control': 'no-store' });
+      try { streamConsolidatedPdf(consolidated, res); } catch { try { res.end(); } catch {} }
+    });
     return;
+  }
+
+  // Sert les VRAIS modules (testés) au front-end (anti-suggestion, état/store, consolidation).
+  if (url.pathname.startsWith('/lib/')) {
+    const LIB = {
+      'antiSuggestion.js': '../safety/antiSuggestion.js',
+      'navState.js': '../session/navState.js',
+      'secureStore.js': '../session/secureStore.js',
+      'sessionMeta.js': '../session/sessionMeta.js',
+      'consolidate.js': '../report/consolidate.js',
+    };
+    const rel = LIB[url.pathname.slice('/lib/'.length)];
+    if (rel) {
+      try {
+        const data = await readFile(path.resolve(__dirname, rel));
+        res.writeHead(200, { 'Content-Type': 'text/javascript; charset=utf-8' }); res.end(data); return;
+      } catch { /* tombe en 404 */ }
+    }
+    res.writeHead(404); res.end('not found'); return;
   }
 
   const urlPath = url.pathname === '/' ? '/index.html' : url.pathname;
