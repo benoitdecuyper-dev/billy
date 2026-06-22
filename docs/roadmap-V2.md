@@ -125,7 +125,32 @@ suivre.
 - **Garde-fous** : message validé avec les associations ; transparence (Billy = programme) ;
   oriente vers les professionnels ; pas de conseil médical/juridique personnalisé.
 
+## V2-7 — Modèle d'usage : téléphone POSÉ À DISTANCE qui transcrit (pas tenu par le parent) — 🔴 à intégrer à la prochaine MEP (décision 2026-06-22)
+
+> **Décision utilisateur (2026-06-22) : ce n'est PAS le parent qui tient le téléphone.**
+> L'appareil est **posé / placé à distance** et **transcrit l'échange avec l'enfant**. L'enfant
+> interagit seul avec Billy ; le parent ne tient pas l'appareil et n'influence pas la parole.
+
+**Ce que ça change (à reprendre à la prochaine MEP) :**
+- **Contredit l'hypothèse actuelle** « appareil tenu/opéré par l'adulte » (`cible-2-5-ans.md` §1)
+  et la copie de l'**espace parent** (`public/adulte.html` : « Vous tenez le téléphone… ») → **à réécrire**.
+- **Transcription de l'échange = captation de la parole de l'enfant** → rejoint **V2-1 (trace /
+  enregistrement)** : reste **bloqué par la DPIA** et exige base légale + consentement parental +
+  chiffrement au repos + hébergement UE + transparence (l'enfant sait qu'on enregistre/transcrit).
+  Tant que la DPIA n'est pas finalisée, la transcription réelle reste **désactivée**.
+- **Posture / anti-contamination** : que le parent **s'écarte** est **favorable** (CIIVISE/NSPCC :
+  ne pas surplomber, ne pas souffler) — cohérent avec l'Option A.
+- **Points à border AVEC les pros** : un enfant de **2-5 ans laissé seul** face à l'appareil pose
+  des questions de **sécurité / supervision** et de **qualité de captation** (micro à distance,
+  bruit ambiant, détection de fin de parole — cf. VAD V2-4) ; définir **où se place l'adulte** ; le
+  **2ᵉ écran (V2-2)** devient le moyen pour l'adulte de **suivre sans tenir** l'appareil.
+
+**À faire à la MEP** : mettre à jour `cible-2-5-ans.md`, la copie de `public/adulte.html`, l'UX 2-5,
+et lier explicitement à **V2-1** (transcription) et **V2-2** (suivi à distance). **Revalidation
+pédopsychiatrie petite enfance** impérative sur le fait de laisser l'enfant seul avec l'appareil.
+
 ## Backlog
 À intégrer comme épopées : **BILLY-E12** (trace audio), **BILLY-E13** (2ᵉ téléphone /
-co-observation Barnahus), **BILLY-E14** (préface parent). Toutes **bloquées** tant que les
+co-observation Barnahus), **BILLY-E14** (préface parent), **BILLY-E16** (modèle « téléphone à
+distance qui transcrit » + réécriture espace parent, V2-7). Toutes **bloquées** tant que les
 conditions (validation pro + DPIA + cadre sécurité) ne sont pas levées.
