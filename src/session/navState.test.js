@@ -82,3 +82,29 @@ test('BILLY-106 — mode post-signal : P5 verrouillée, orientation renforcée',
   assert.ok(!plan.steps.includes('P5')); // jamais de réouverture
   assert.ok(plan.steps.includes('orientation-reinforced'));
 });
+
+/* --- Durcissements audit/red-team --- */
+test('P3 — phaseId hors allow-list rejeté (contenu déguisé en id)', () => {
+  assert.throws(() => assertNoContent({ ...emptyState(), phaseId: 'iltouchezizi' }), /navigation/);
+  assert.throws(() => assertNoContent({ ...emptyState(), completedPhases: ['iltouchezizi'] }), /identifiants/);
+});
+
+test('P3 — usedNeutralTopics : un mot-phrase concaténé est rejeté', () => {
+  assert.throws(() => assertNoContent({ ...emptyState(), usedNeutralTopics: ['papamatouche'] }), /catalogue|identifiants/);
+  // un vrai id de catalogue (avec chiffre) passe
+  assertNoContent({ ...emptyState(), usedNeutralTopics: ['t1', 'sujet-2'] });
+});
+
+test('C3 — une string longue sous une clé numérique est rejetée', () => {
+  assert.throws(() => assertNoContent({ ...emptyState(), lastSessionTs: 'papa m\'a fait quelque chose' }), /nombre/);
+  assert.throws(() => assertNoContent({ ...emptyState(), sessionsCount: 'verbatim' }), /nombre/);
+});
+
+test('Red-team P4 — tous les sujets neutres utilisés : on SAUTE P4 (pas de rejeu)', () => {
+  let s = recordNeutralTopic(recordNeutralTopic(emptyState(), 't1'), 't2');
+  s = complete(s, 1000);
+  const plan = planReturnSession(s, ['t1', 't2']);
+  assert.equal(plan.mode, 'return');
+  assert.equal(plan.neutralTopicId, null);
+  assert.ok(!plan.steps.includes('P4-neutral'));
+});

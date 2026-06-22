@@ -42,6 +42,9 @@ export function assertReportPerimeter(node, path = 'rapport') {
   }
   if (typeof node === 'object') {
     for (const k of Object.keys(node)) {
+      // Audit É1 : entrée réseau (/api/report/consolidated) → bloquer la prototype pollution.
+      if (k === '__proto__' || k === 'prototype' || k === 'constructor')
+        throw new Error(`rapport: clé interdite « ${k} » en ${path}`);
       if (FORBIDDEN_KEYS.has(norm(k)))
         throw new Error(`rapport: champ hors périmètre RGPD « ${k} » en ${path}`);
     }

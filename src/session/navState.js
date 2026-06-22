@@ -37,12 +37,21 @@ export function emptyState() {
   };
 }
 
-// Un identifiant de navigation = chaîne courte ou nombre, jamais une phrase (pas d'espace, borné).
-function isNavId(v) {
-  if (typeof v === 'number') return Number.isFinite(v);
-  if (typeof v !== 'string') return false;
-  return v.length > 0 && v.length <= 32 && !/\s/.test(v);
-}
+// Audit/red-team P3 : on ne se contente plus d'un « format » d'identifiant (une phrase courte
+// sans espace, ex. « papamatouche », passerait) — on impose une ALLOW-LIST de valeurs connues.
+// Les phases sont un ensemble FERMÉ ; les sujets neutres sont des identifiants de catalogue
+// (slug court), jamais du texte libre.
+const PHASE_IDS = new Set([
+  'P1', 'P2', 'P3', 'P4', 'P5', 'P6', 'P7',
+  'greeting-brief', 'P3-abridged', 'P4-neutral', 'closure-soft', 'orientation-reinforced',
+]);
+// Identifiant de sujet neutre = id de CATALOGUE (slug ≤ 24) qui doit comporter un chiffre ou un
+// tiret (ex. « t1 », « sujet-neutre-2 ») — pour qu'un mot-phrase concaténé (« papamatouche ») ne
+// puisse pas s'y faire passer pour de la navigation. La vraie garantie restera l'allow-list du
+// catalogue signé ; ceci est la défense de bas niveau.
+const TOPIC_ID_RE = /^[a-z0-9_-]{1,24}$/i;
+const isPhaseId = (v) => typeof v === 'string' && PHASE_IDS.has(v);
+const isTopicId = (v) => typeof v === 'string' && TOPIC_ID_RE.test(v) && /[0-9-]/.test(v);
 
 /** Vérifie qu'aucune donnée de CONTENU n'a fui dans l'état. Lève si violation. */
 export function assertNoContent(state) {
@@ -50,17 +59,23 @@ export function assertNoContent(state) {
   for (const k of Object.keys(state)) {
     if (!ALLOWED_KEYS.has(k)) throw new Error(`navState: clé interdite (contenu ?) « ${k} »`);
   }
-  if (state.phaseId !== null && !isNavId(state.phaseId))
-    throw new Error('navState: phaseId doit être un identifiant de navigation, pas du contenu');
+  if (state.phaseId !== null && !isPhaseId(state.phaseId))
+    throw new Error('navState: phaseId doit être un identifiant de navigation connu, pas du contenu');
   if (typeof state.signalEmitted !== 'boolean')
     throw new Error('navState: signalEmitted doit être un booléen');
-  for (const key of ['completedPhases', 'usedNeutralTopics']) {
-    const arr = state[key];
-    if (!Array.isArray(arr)) throw new Error(`navState: ${key} doit être une liste d'identifiants`);
-    for (const v of arr) {
-      if (!isNavId(v))
-        throw new Error(`navState: ${key} ne peut contenir que des identifiants de navigation, pas du contenu`);
-    }
+  // Audit C3 : les clés numériques DOIVENT être des nombres finis — sinon on pourrait y
+  // faire passer du verbatim (une string longue) sous une clé autorisée. Fail-closed.
+  for (const f of ['lastSessionTs', 'sessionsCount']) {
+    if (typeof state[f] !== 'number' || !Number.isFinite(state[f]))
+      throw new Error(`navState: ${f} doit être un nombre (pas du contenu)`);
+  }
+  if (!Array.isArray(state.completedPhases)) throw new Error('navState: completedPhases doit être une liste d\'identifiants');
+  for (const v of state.completedPhases) {
+    if (!isPhaseId(v)) throw new Error('navState: completedPhases ne peut contenir que des identifiants de navigation connus, pas du contenu');
+  }
+  if (!Array.isArray(state.usedNeutralTopics)) throw new Error('navState: usedNeutralTopics doit être une liste d\'identifiants');
+  for (const v of state.usedNeutralTopics) {
+    if (!isTopicId(v)) throw new Error('navState: usedNeutralTopics ne peut contenir que des identifiants de catalogue, pas du contenu');
   }
   return state;
 }
@@ -134,9 +149,13 @@ export function planReturnSession(state, availableNeutralTopicIds = []) {
     return { mode: 'post-signal', steps: ['greeting-brief', 'P3-abridged', 'closure-soft', 'orientation-reinforced'], openingLocked: true, neutralTopicId: null };
   }
 
-  // Séance de retour standard : choisir un sujet neutre encore jamais utilisé.
+  // Séance de retour standard : choisir un sujet neutre encore JAMAIS utilisé.
+  // Red-team P4 : si tous les sujets ont déjà servi, on SAUTE P4 (on ne rejoue jamais un sujet
+  // déjà ancré) plutôt que de retomber sur le premier de la liste.
   const used = new Set(s.usedNeutralTopics);
   const fresh = availableNeutralTopicIds.find((id) => !used.has(id));
-  const neutralTopicId = fresh != null ? fresh : (availableNeutralTopicIds[0] ?? null);
-  return { mode: 'return', steps: ['greeting-brief', 'P3-abridged', 'P4-neutral', 'P5'], openingLocked: false, neutralTopicId };
+  if (fresh == null) {
+    return { mode: 'return', steps: ['greeting-brief', 'P3-abridged', 'P5'], openingLocked: false, neutralTopicId: null };
+  }
+  return { mode: 'return', steps: ['greeting-brief', 'P3-abridged', 'P4-neutral', 'P5'], openingLocked: false, neutralTopicId: fresh };
 }

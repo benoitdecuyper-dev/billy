@@ -16,7 +16,7 @@ function memStorage() {
   };
 }
 
-const CODE = '1234';
+const CODE = '123456';
 
 test('BILLY-104 : aller-retour chiffré conserve l\'état de navigation', async () => {
   const st = memStorage();
@@ -34,8 +34,8 @@ test('BILLY-104 : le store ne contient AUCUNE donnée en clair (chiffré au repo
   const blob = st.getItem(STORAGE_KEY);
   assert.ok(!blob.includes('P4'), 'aucun identifiant de phase en clair');
   assert.ok(!blob.includes('phaseId'), 'aucune clé de l\'état en clair');
-  // structure attendue : sel + iv + cipher, rien d'autre
-  assert.deepEqual(Object.keys(JSON.parse(blob)).sort(), ['ct', 'iv', 'salt', 'v']);
+  // structure attendue : sel + iv + cipher + horodatage de conservation, rien d'autre
+  assert.deepEqual(Object.keys(JSON.parse(blob)).sort(), ['ct', 'iv', 'salt', 'savedAt', 'v']);
 });
 
 test('BILLY-104 : refus de persister du contenu (périmètre §4.1, fail-closed)', async () => {
@@ -47,12 +47,12 @@ test('BILLY-104 : refus de persister du contenu (périmètre §4.1, fail-closed)
 test('BILLY-104 : code parental erroné => déchiffrement refusé (fail-closed)', async () => {
   const st = memStorage();
   await saveState(st, CODE, advance(emptyState(), 'P5', 1000));
-  await assert.rejects(loadState(st, '9999'), /déchiffrement impossible/);
+  await assert.rejects(loadState(st, '999999'), /déchiffrement impossible/);
 });
 
 test('BILLY-104 : code parental trop court refusé', async () => {
   const st = memStorage();
-  await assert.rejects(saveState(st, '12', emptyState()), /code parental/);
+  await assert.rejects(saveState(st, '12345', emptyState()), /code parental/);
 });
 
 test('BILLY-104 : purge rend les données irrécupérables', async () => {
@@ -82,6 +82,17 @@ test('BILLY-111 : métadonnées de séances chiffrées (aller-retour, rien en cl
 test('BILLY-111 : refus de persister du contenu dans les métadonnées', async () => {
   const st = memStorage();
   await assert.rejects(saveSessions(st, CODE, [{ n: 1, signal: false, verbatim: 'papa...' }]), /interdit/);
+});
+
+test('F3 : purge automatique au-delà de 30 jours', async () => {
+  const st = memStorage();
+  await saveSessions(st, CODE, addSessionMeta(null, { date: '01/06/2026', signal: false }));
+  // on vieillit artificiellement le blob (40 jours)
+  const blob = JSON.parse(st.getItem(SESSIONS_KEY));
+  blob.savedAt = Date.now() - 40 * 24 * 60 * 60 * 1000;
+  st.setItem(SESSIONS_KEY, JSON.stringify(blob));
+  assert.equal(await loadSessions(st, CODE), null, 'données expirées => null');
+  assert.equal(st.getItem(SESSIONS_KEY), null, 'blob expiré purgé');
 });
 
 test('BILLY-111 : purgeAll efface état ET séances', async () => {

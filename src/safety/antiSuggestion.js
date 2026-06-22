@@ -192,8 +192,31 @@ function audit(text, state = {}) {
       /\btu te (souviens|rappelles?) (de |que |quand |la |ce que|notre|notre derniere)\b/,
       /\b(la semaine|le mois|le jour) (derniere|dernier|d'avant|precedente|precedent)\b/,
       /\bquand (on|tu|nous) (s'est|s est|s'etait|t'es|t es) (vu|vus|parle|parles|arrete|arretes)\b/,
+      // Red-team P1 : renvois TEMPORELS/INDIRECTS au passé partagé
+      /\btout a l'?heure\b/,
+      /\b(tantot|plus tot|precedemment|auparavant|naguere)\b/,
+      /\bcomme avant\b/,
+      /\b(avant|plus tot)[, ]+(tu|on|nous)\b/,
+      /\b(reprenons|reprends|finis|termine|continue|reparle|redis|reraconte)(s|z)?\b.{0,30}\b(de |ce que|ce dont|ton|ta|notre|l'histoire|le recit|ce qu)/,
+      /\b(reparle|redis|reraconte)[- ]?(moi|nous)?\b/,
+      /\bvisite (precedente|d'avant|passee)\b/,
+      /\bon (en )?(avait|a) (deja )?(parle|discute|commence|evoque|aborde)\b/,
+      /\bce dont (on|nous) (a|avons|avait|avions) (parle|discute|deja parle)\b/,
+      // Billy revendiquant SA mémoire (viole P3 : pas de continuité affective/mémoire simulée)
+      /\bje (me souviens|n'ai pas oublie|me rappelle|sais ce que tu)\b/,
     ];
     for (const re of REINJECTION) if (re.test(n)) return block('REINJECTION_PAST', 'référence à une séance antérieure (réinjection)');
+
+    // Red-team P2 : continuité/lien AFFECTIF simulé (interdit §4.5, Tension 2) — aucune règle ne
+    // l'attrapait. « content de te revoir », « tu m'as manqué », « re-bonjour », « je t'aime bien »…
+    if (/\b(content|contente|ravi|ravie|heureux|heureuse) de te (revoir|retrouver|reparler)\b/.test(n)
+      || /\btu m'?as manque\b/.test(n)
+      || /\bte (revoila|revoici)\b/.test(n)
+      || /\b(c'est|ca me fait) (gentil|plaisir) de (te |re)/.test(n)
+      || /\bc'est encore moi\b/.test(n)
+      || /\bje t'?aime (bien|beaucoup)\b/.test(n)
+      || /\bre[- ]?(bonjour|coucou)\b/.test(n))
+      return block('AFFECTIVE_CONTINUITY', 'simulation de continuité / lien affectif');
 
     return PASS;
   } catch (e) {

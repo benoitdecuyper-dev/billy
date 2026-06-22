@@ -43,12 +43,14 @@
 
     <!-- Verrou code parental -->
     <div class="card" id="lockCard">
-      <label for="code">Votre code parental</label>
-      <input id="code" type="password" inputmode="numeric" autocomplete="off" placeholder="••••" />
+      <label for="code">Votre code parental (6 caractères minimum)</label>
+      <input id="code" type="password" autocomplete="off" placeholder="lettres et chiffres" />
       <button class="btn" id="openBtn">Ouvrir</button>
       <p class="msg" id="lockMsg"></p>
       <p class="note">Ce code chiffre les informations sur l'appareil (AES-256). Personne ne peut
-        les lire sans lui — Billy non plus. Choisissez-le à la première ouverture ; conservez-le.</p>
+        les lire sans lui — Billy non plus. Choisissez un code <b>long</b> (idéalement une phrase
+        ou des lettres + chiffres) ; conservez-le. Après plusieurs essais erronés, l'accès est
+        temporairement bloqué.</p>
     </div>
 
     <!-- Liste des séances (déverrouillée) -->
@@ -103,16 +105,36 @@
       }
     }
 
+    // C2 — anti-brute-force : compteur d'échecs persistant + back-off croissant (sur l'appareil).
+    const FAILS_KEY = 'billy.unlock.fails', UNTIL_KEY = 'billy.unlock.until';
+    const getNum = (k) => Number(storage.getItem(k) || 0);
+    function lockedFor() { return Math.max(0, getNum(UNTIL_KEY) - Date.now()); }
+    function onFail() {
+      const fails = getNum(FAILS_KEY) + 1;
+      storage.setItem(FAILS_KEY, String(fails));
+      const wait = Math.min(5 * 60_000, Math.pow(2, Math.max(0, fails - 3)) * 1000); // back-off à partir du 3e essai
+      if (fails >= 3) storage.setItem(UNTIL_KEY, String(Date.now() + wait));
+      return wait;
+    }
+    function onSuccess() { storage.removeItem(FAILS_KEY); storage.removeItem(UNTIL_KEY); }
+
     async function open() {
-      const c = $('code').value.trim();
-      if (c.length < 4) { lockMsg.textContent = 'Code trop court (4 caractères minimum).'; lockMsg.className = 'msg err'; return; }
+      const blocked = lockedFor();
+      if (blocked > 0) { lockMsg.textContent = `Trop d'essais. Réessayez dans ${Math.ceil(blocked / 1000)} s.`; lockMsg.className = 'msg err'; return; }
+      const c = $('code').value;
+      if (c.length < 6) { lockMsg.textContent = 'Code trop court (6 caractères minimum).'; lockMsg.className = 'msg err'; return; }
       code = c;
       try {
         const list = await loadSessions(storage, code); // null si rien, lève si code erroné
+        onSuccess();
         lockCard.classList.add('hidden'); listCard.classList.remove('hidden');
         render(list || []);
       } catch {
-        lockMsg.textContent = 'Code incorrect (ou données illisibles).'; lockMsg.className = 'msg err'; code = null;
+        const wait = onFail(); code = null;
+        lockMsg.textContent = getNum(FAILS_KEY) >= 3
+          ? `Code incorrect. Accès bloqué ${Math.ceil(wait / 1000)} s.`
+          : 'Code incorrect (ou données illisibles).';
+        lockMsg.className = 'msg err';
       }
     }
 

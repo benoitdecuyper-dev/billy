@@ -85,6 +85,11 @@ test('BILLY-113 : minimisation par construction (champs analytiques en entrée �
   assertReportPerimeter(c); // le résultat reste dans le périmètre
 });
 
+test('É1 : prototype pollution rejetée (entrée réseau)', () => {
+  assert.throws(() => assertReportPerimeter(JSON.parse('{"__proto__":{"x":1}}')), /interdite/);
+  assert.throws(() => assertReportPerimeter(JSON.parse('{"constructor":1}')), /interdite/);
+});
+
 test('BILLY-112 : export PDF consolidé produit un fichier non vide', async () => {
   const p = join(tmpdir(), `billy-consolide-test-${process.pid}.pdf`);
   await writeConsolidatedPdf(buildConsolidated([S1, S2]), p);

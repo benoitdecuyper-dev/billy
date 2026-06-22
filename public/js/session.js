@@ -49,7 +49,7 @@ import { audit } from '/lib/antiSuggestion.js';
     return new Promise((res) => {
       const a = new Audio(url);
       let raf = null, analyser = null, data = null, ended = false;
-      const done = () => { if (ended) return; ended = true; if (raf) cancelAnimationFrame(raf); stopFlap(); billy.classList.remove('open'); res(); };
+      const done = () => { if (ended) return; ended = true; if (raf) cancelAnimationFrame(raf); stopFlap(); billy.classList.remove('open'); try { URL.revokeObjectURL(url); } catch {} res(); };
       try {
         audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
         if (audioCtx.state === 'suspended') audioCtx.resume().catch(() => {});
@@ -83,7 +83,8 @@ import { audit } from '/lib/antiSuggestion.js';
     if (v.decision === 'BLOCK') text = OPEN_RELANCES[0]; // garde-fou : repli sur invitation ouverte
     recordTurn('Billy', text);
     try {
-      const r = await fetch('/api/tts?text=' + encodeURIComponent(text));
+      // M1 : texte en POST/body (jamais en URL) — il peut contenir un mot repris de l'enfant.
+      const r = await fetch('/api/tts', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text }) });
       if (r.ok) { const b = await r.blob(); await playUrl(URL.createObjectURL(b)); return; } // lip-sync géré dans playUrl
     } catch {}
     startFlap(); await speakBrowser(text); stopFlap(); // voix navigateur : pas d'analyse audio -> flap simple
@@ -164,7 +165,8 @@ import { audit } from '/lib/antiSuggestion.js';
     };
     try {
       const r = await fetch('/api/report', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(session) });
-      const b = await r.blob(); window.open(URL.createObjectURL(b), '_blank');
+      const b = await r.blob(); const u = URL.createObjectURL(b); window.open(u, '_blank');
+      setTimeout(() => { try { URL.revokeObjectURL(u); } catch {} }, 60000); // É3 : libère le blob (verbatim) après ouverture
     } catch {}
   }
 

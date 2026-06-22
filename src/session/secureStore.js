@@ -18,7 +18,11 @@ import { assertSessionMetaList } from './sessionMeta.js';
 
 const STATE_KEY = 'billy.navstate.v1';
 const SESSIONS_KEY = 'billy.sessions.v1';
-const PBKDF2_ITER = 100000;
+// Audit C1 : PBKDF2 ≥ 600 000 itérations (recommandation OWASP 2023 pour SHA-256).
+const PBKDF2_ITER = 600000;
+// Audit F3 / V2-PO §6.2 : durée de conservation maximale = 30 jours, purge automatique.
+const DEFAULT_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+const MIN_CODE_LEN = 6;
 
 const subtle = () => globalThis.crypto.subtle;
 
@@ -36,8 +40,8 @@ function ub64(str) {
 }
 
 async function deriveKey(parentalCode, salt) {
-  if (typeof parentalCode !== 'string' || parentalCode.length < 4)
-    throw new Error('secureStore: code parental requis (≥ 4 caractères)');
+  if (typeof parentalCode !== 'string' || parentalCode.length < MIN_CODE_LEN)
+    throw new Error(`secureStore: code parental requis (≥ ${MIN_CODE_LEN} caractères)`);
   const baseKey = await subtle().importKey(
     'raw', new TextEncoder().encode(parentalCode), 'PBKDF2', false, ['deriveKey'],
   );
@@ -57,13 +61,18 @@ async function encryptTo(storage, parentalCode, storageKey, data) {
   const key = await deriveKey(parentalCode, salt);
   const plaintext = new TextEncoder().encode(JSON.stringify(data));
   const cipher = new Uint8Array(await subtle().encrypt({ name: 'AES-GCM', iv }, key, plaintext));
-  storage.setItem(storageKey, JSON.stringify({ v: 1, salt: b64(salt), iv: b64(iv), ct: b64(cipher) }));
+  storage.setItem(storageKey, JSON.stringify({ v: 1, savedAt: Date.now(), salt: b64(salt), iv: b64(iv), ct: b64(cipher) }));
   return true;
 }
-async function decryptFrom(storage, parentalCode, storageKey) {
+async function decryptFrom(storage, parentalCode, storageKey, maxAgeMs = DEFAULT_TTL_MS) {
   const raw = storage.getItem(storageKey);
   if (!raw) return null;
-  const { salt, iv, ct } = JSON.parse(raw);
+  const { salt, iv, ct, savedAt } = JSON.parse(raw);
+  // Audit F3 : purge automatique au-delà de la durée de conservation (avant tout déchiffrement).
+  if (typeof savedAt === 'number' && maxAgeMs > 0 && Date.now() - savedAt > maxAgeMs) {
+    storage.removeItem(storageKey);
+    return null;
+  }
   const key = await deriveKey(parentalCode, ub64(salt));
   try {
     const plainBuf = await subtle().decrypt({ name: 'AES-GCM', iv: ub64(iv) }, key, ub64(ct));
