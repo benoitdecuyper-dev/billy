@@ -85,7 +85,8 @@ LLM face à l'enfant).
 **Dans le périmètre :**
 - Avatar Billy + **boucle vocale temps réel** (STT → moteur → TTS) sur **PWA mobile-first**.
 - **Cible d'âge : ⚠️ CADUC — voir `cible-2-5-ans.md`.** La cible principale est désormais
-  **2–5 ans** (décision 2026-06-21). À cet âge : appareil tenu par l'adulte, enfant non-lecteur
+  **2–5 ans** (décision 2026-06-21). À cet âge : appareil **posé à distance** (pas tenu par l'adulte
+  — décision 2026-06-22, cf. roadmap V2-7), enfant non-lecteur
   (voix + images, mains-libres), suggestibilité maximale → Billy **n'investigue pas**, rôle =
   mise en confiance + repérage + orientation ; recueil 100 % aux pros. Revalidation
   pédopsychiatrie petite enfance impérative. *(L'hypothèse 6–10 ci-dessous est obsolète.)*

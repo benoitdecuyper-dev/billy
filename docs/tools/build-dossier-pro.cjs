@@ -231,8 +231,9 @@ doc.addPage();
 // =====================================================================
 h2('1. Ce qu’est Billy — et ce qu’il n’est pas');
 p("Billy est une application smartphone à intelligence artificielle vocale, incarnée par une "
-  + "mascotte bienveillante (un écureuil). Tenu et opéré par l'adulte (le jeune enfant n'a pas "
-  + "de téléphone et ne sait pas lire), il fonctionne en mains-libres, par la voix et l'image.");
+  + "mascotte bienveillante (un écureuil). L'appareil est POSÉ À DISTANCE près de l'enfant (il "
+  + "n'est pas tenu par l'adulte, qui s'écarte pour ne pas influencer la parole) ; le jeune enfant, "
+  + "non-lecteur, interagit seul en mains-libres, par la voix et l'image.");
 h3('Sa fonction, en une phrase');
 p("Aider à REPÉRER si un jeune enfant a pu subir une violence ou une agression — sans jamais "
   + "mener d'interrogatoire — puis ORIENTER vers les professionnels, et soutenir l'adulte.");
@@ -337,7 +338,7 @@ bullets([
   "La couche ANTI-SUGGESTION : les règles qui rendent une question suggestive impossible.",
   "La DÉTECTION des signaux et le seuil d'orientation (ni manqué, ni sur-alerte).",
   "L'ESCALADE et le RAPPORT : du signal à l'orientation, et un compte rendu transmissible, brut, sans interprétation.",
-  "La gestion du conflit d'intérêts : l'adulte qui tient le téléphone peut être la personne en cause.",
+  "La gestion du conflit d'intérêts : l'adulte présent (le téléphone est posé près de l'enfant) peut être la personne en cause.",
 ]);
 
 // =====================================================================
@@ -347,7 +348,11 @@ callout('Notre honnêteté sur les risques',
   + "l'interdiction stricte. 2) La dissociation peut faire passer un enfant gravement traumatisé pour « calme » : "
   + "le rapport doit alerter, pas rassurer. 3) Le risque de faux positifs impose la logique « comportement + critère, "
   + "par âge ». 4) La parole d'un 2-5 ans n'est jamais une preuve : le rapport consigne des observations et un "
-  + "verbatim brut, sans qualification ni conclusion. Nous attendons votre avis sur chacun de ces points.",
+  + "verbatim brut, sans qualification ni conclusion. 5) Le téléphone est POSÉ À DISTANCE et l'enfant interagit "
+  + "seul (l'adulte s'écarte pour ne pas souffler) : c'est favorable côté anti-contamination, mais laisser un "
+  + "tout-petit seul face à l'appareil pose des questions de SUPERVISION et de qualité de captation — nous "
+  + "retenons « adulte à proximité, sans intervenir » et sollicitons votre avis sur ce point précis. "
+  + "Nous attendons votre avis sur chacun de ces points.",
   'warn');
 
 // =====================================================================

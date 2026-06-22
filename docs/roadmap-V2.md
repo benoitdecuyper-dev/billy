@@ -125,7 +125,7 @@ suivre.
 - **Garde-fous** : message validé avec les associations ; transparence (Billy = programme) ;
   oriente vers les professionnels ; pas de conseil médical/juridique personnalisé.
 
-## V2-7 — Modèle d'usage : téléphone POSÉ À DISTANCE qui transcrit (pas tenu par le parent) — 🔴 à intégrer à la prochaine MEP (décision 2026-06-22)
+## V2-7 — Modèle d'usage : téléphone POSÉ À DISTANCE qui transcrit (pas tenu par le parent) — 🟠 copie & docs intégrées (2026-06-22) ; transcription bloquée DPIA + validation pro à venir
 
 > **Décision utilisateur (2026-06-22) : ce n'est PAS le parent qui tient le téléphone.**
 > L'appareil est **posé / placé à distance** et **transcrit l'échange avec l'enfant**. L'enfant
@@ -148,6 +148,19 @@ suivre.
 **À faire à la MEP** : mettre à jour `cible-2-5-ans.md`, la copie de `public/adulte.html`, l'UX 2-5,
 et lier explicitement à **V2-1** (transcription) et **V2-2** (suivi à distance). **Revalidation
 pédopsychiatrie petite enfance** impérative sur le fait de laisser l'enfant seul avec l'appareil.
+
+**✅ Fait (2026-06-22)** — intégration éditoriale de la décision (sans activer la transcription,
+toujours bloquée par la DPIA) :
+- `public/adulte.html` : encart réécrit (« posez le téléphone et écartez-vous, restez à proximité
+  sans souffler ») ; CTA « lancer la séance » au lieu de « donner Billy à l'enfant ».
+- `cible-2-5-ans.md` §1 (téléphone posé à distance, VAD devenu indispensable, lien V2-1) et §3
+  (s'écarter = favorable ; supervision « adulte à proximité » ; revalidation pédopsy à faire).
+- `00-CADRAGE.md`, `ux-2-5.md`, `00-ETAT-ET-PROD.md` : copie alignée.
+- Dossier de validation clinique (générateur + PDF régénéré) : modèle d'usage corrigé + nouveau
+  point sensible « enfant 2-5 seul face à l'appareil » soumis explicitement aux pros.
+
+**Reste (gates, pas du code)** : DPIA (transcription/captation réelle), validation pédopsychiatrie
+petite enfance sur l'enfant laissé seul, puis activation de V2-1/V2-2.
 
 ## Backlog
 À intégrer comme épopées : **BILLY-E12** (trace audio), **BILLY-E13** (2ᵉ téléphone /

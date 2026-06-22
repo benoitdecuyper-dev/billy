@@ -4,15 +4,21 @@
 > 2 à 5 ans.** Cela **remplace** l'hypothèse précédente du cadrage (6-10 ans, exclusion des 3-5).
 > Conséquences fortes sur la conception ET sur le niveau de risque. À revalider avec les pros.
 
-## 1. Le téléphone n'est PAS celui de l'enfant
+## 1. Le téléphone n'est PAS celui de l'enfant — il est POSÉ À DISTANCE
 
-À 2-5 ans, l'enfant n'a pas de téléphone à lui. **L'appareil appartient à l'adulte et est tenu /
-opéré par lui.** Conséquences de conception :
+À 2-5 ans, l'enfant n'a pas de téléphone à lui. **L'appareil appartient à l'adulte mais n'est PAS
+tenu par lui** : décision utilisateur (2026-06-22, cf. roadmap V2-7) — le téléphone est **posé /
+placé à proximité de l'enfant**, qui **interagit seul** avec Billy ; **l'adulte s'écarte** (reste
+dans la pièce, sans souffler ni répondre à sa place) pour **ne pas influencer la parole**. Cela
+*inverse* l'hypothèse initiale « appareil tenu/opéré par l'adulte ». Conséquences de conception :
 - **Pas de lecture** : l'enfant ne sait pas lire → **tout passe par la voix et l'image**
   (sous-titres = pour l'adulte uniquement).
 - **Pas de boutons à utiliser par l'enfant** : « J'ai fini de parler » est impossible →
   fonctionnement **mains-libres** + **détection automatique de fin de parole** (cf. roadmap V2-4)
-  et/ou **l'adulte assiste**.
+  — l'enfant étant **seul face à l'appareil posé**, le VAD devient **indispensable** (et non plus
+  un simple confort).
+- **Captation à distance** : transcrire l'échange d'un micro **posé** (bruit ambiant, distance,
+  fin de parole) est plus exigeant → rejoint **V2-1** (trace/transcription), **bloqué par la DPIA**.
 - **Langage ultra-simple** : phrases très courtes, un seul concept à la fois, beaucoup d'appui
   visuel (avatar, images d'émotions).
 - **Reformuler la transparence** : « je suis un personnage sur **ton** téléphone » n'a pas de sens
@@ -42,14 +48,20 @@ Cibler les **2-5 ans** est le cas **le plus délicat** qui soit, et nos propres 
 - **Validation par des professionnels de la petite enfance** (pédopsychiatrie 0-6 ans) =
   encore plus impérative qu'ailleurs.
 
-## 3. Tension : l'adulte tient le téléphone… mais l'adulte peut être l'auteur
+## 3. Tension : l'adulte s'écarte (favorable)… mais l'adulte peut être l'auteur
 
-À 2-5 ans, un adulte assiste forcément. Or un détenteur de l'autorité parentale **peut être la
-personne en cause**. Donc :
-- Ne jamais faire dépendre l'accès à l'aide (119) de cet adulte.
-- Le **cadrage parent** (V2-5) et la conception doivent tenir compte de ce conflit d'intérêts.
-- Côté contamination : si l'adulte parle à la place de l'enfant ou souffle, l'outil doit aider à
-  **recentrer sur l'enfant** sans le braquer (à concevoir avec les pros).
+À 2-5 ans, un adulte est forcément présent (le téléphone est posé près de l'enfant, pas tenu).
+Que l'adulte **s'écarte** est **favorable** côté anti-contamination (CIIVISE/NSPCC : ne pas
+surplomber, ne pas souffler). Mais deux points durs subsistent :
+- **L'adulte peut être la personne en cause** (détenteur de l'autorité parentale) → ne jamais faire
+  dépendre l'accès à l'aide (119) de cet adulte ; le **cadrage parent** (V2-5) et la conception
+  doivent tenir compte de ce conflit d'intérêts.
+- **Supervision d'un 2-5 laissé face à l'appareil** : « s'écarter » ne veut pas dire « laisser seul
+  sans surveillance ». La posture retenue = **adulte à proximité, dans la pièce, sans intervenir**
+  (le 2ᵉ écran V2-2 permet de suivre sans tenir). Le fait même de laisser un tout-petit interagir
+  seul avec l'appareil reste à **revalider impérativement avec la pédopsychiatrie petite enfance**.
+- Côté contamination : si l'adulte parle à la place de l'enfant ou souffle malgré tout, l'outil doit
+  aider à **recentrer sur l'enfant** sans le braquer (à concevoir avec les pros).
 
 ## 4. Pistes d'adaptation 2-5 ans (à concevoir AVEC les experts)
 - Support **visuel** fort (images d'émotions simples, avatar expressif) plutôt que mots.
