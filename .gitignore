@@ -14,3 +14,6 @@ sessions/
 *.wav
 *.mp3
 *.transcript.json
+
+# Dossier de validation (marqué « confidentiel ») — repo public : artefact régénérable via docs/tools/
+docs/Billy-dossier-validation-clinique.pdf
