@@ -19,6 +19,8 @@
     { type: 'say', audio: 'a1', text: "Coucou ! Moi, c'est Billy. Je suis un petit écureuil tout doux. Je suis trop content de te voir !" },
     { type: 'say', audio: 'gym', anim: 'gym', text: "Tu sais quoi ? Moi, j'adore la gymnastique ! Je fais des roulades, et des roues, et hop, hop, hop !" },
     { type: 'say', audio: 'rugby', anim: 'rugby', text: "Et j'adore aussi le rugby ! Je cours super vite avec le ballon, et hop, j'attrape !" },
+    { type: 'say', audio: 'foot', anim: 'foot', text: "Et au foot ! Je cours, je shoote dans le ballon… et boum, dans le but !" },
+    { type: 'say', audio: 'danse', anim: 'danse', text: "Et tu sais ce que je préfère ? Danser ! Je bouge dans tous les sens, c'est trop rigolo !" },
     { type: 'say', audio: 'a2', text: "Je suis là juste pour t'écouter. Ici, tu peux parler avec tes mots à toi. Il n'y a pas de bonne ou de mauvaise réponse." },
     { type: 'say', audio: 'a3', text: "Si à un moment tu veux qu'on s'arrête, tu me le dis, et on arrête. C'est toi qui décides." },
     { type: 'ask', audio: 'a4', followups: 1, text: "Pour faire connaissance tout doucement, raconte-moi ta journée d'hier. Du réveil jusqu'au soir. Prends tout ton temps." },
@@ -56,16 +58,31 @@
   const APPROVED = new Set([...SCRIPT, ...FOLLOWUPS, SILENCE, STOP].map((l) => _canon(l.text)));
   const approved = (line) => APPROVED.has(_canon(line.text));
 
+  // Voix du navigateur (repli quand un clip pré-enregistré manque encore, ex. foot/danse).
+  let frVoice = null;
+  if ('speechSynthesis' in window) {
+    const pv = () => { const v = speechSynthesis.getVoices().filter((x) => /^fr/i.test(x.lang)); frVoice = v.find((x) => /google|natural|naturel/i.test(x.name)) || v[0] || null; };
+    pv(); speechSynthesis.onvoiceschanged = pv;
+  }
+  function speakBrowser(text, cb) {
+    if (!('speechSynthesis' in window)) { cb(); return; }
+    const u = new SpeechSynthesisUtterance(text); u.lang = 'fr-FR'; if (frVoice) u.voice = frVoice; u.rate = 0.95; u.pitch = 1.08;
+    u.onend = cb; u.onerror = cb;
+    speechSynthesis.cancel(); speechSynthesis.speak(u);
+  }
+
   // --- Billy parle : audio + bouche animée (aucun texte affiché) ---
   function speak(line) {
     return new Promise((resolve) => {
       setState('speaking');
       if (!approved(line)) { resolve(); return; }
-      if (line.anim) billy.dataset.anim = line.anim; else startFlap(); // gym/rugby : on anime, pas de bouche
+      if (line.anim) billy.dataset.anim = line.anim; else startFlap(); // gym/rugby/foot/danse : on anime, pas de bouche
+      let finished = false;
+      const done = () => { if (finished) return; finished = true; stopFlap(); billy.removeAttribute('data-anim'); resolve(); };
       audioEl = new Audio('/assets/audio/' + line.audio + '.mp3');
-      const done = () => { stopFlap(); billy.removeAttribute('data-anim'); resolve(); };
-      audioEl.onended = done; audioEl.onerror = done;
-      audioEl.play().catch(done);
+      audioEl.onended = done;
+      audioEl.onerror = () => { if (!finished) speakBrowser(line.text, done); }; // pas de clip -> voix du navigateur
+      audioEl.play().catch(() => { if (!finished) speakBrowser(line.text, done); });
     });
   }
   function startFlap() { stopFlap(); flapTimer = setInterval(() => billy.classList.toggle('open'), 140); }

@@ -115,14 +115,20 @@ body {
 .start__legal { font-size: .8rem; color: var(--muted); max-width: 32ch; line-height: 1.45; margin-top: .5rem; }
 .start__legal strong { color: var(--pink-deep); }
 
-/* ---------- Phase d'approche : Billy fait de la gym / du rugby ---------- */
-.frame-gym, .frame-rugby { opacity: 0; }
+/* ---------- Phase d'approche : Billy fait de la gym / rugby / foot / danse ---------- */
+.frame-gym, .frame-rugby, .frame-foot, .frame-danse { opacity: 0; }
 .billy[data-anim] { animation: none !important; } /* on laisse la frame s'animer, pas le parent */
 .billy[data-anim] .frame-closed, .billy[data-anim] .frame-talk { opacity: 0; }
 .billy[data-anim="gym"] .frame-gym { opacity: 1; transform-origin: 50% 50%; animation: billy-gym 2.4s ease-in-out infinite; }
 .billy[data-anim="rugby"] .frame-rugby { opacity: 1; animation: billy-rugby .9s ease-in-out infinite; }
+.billy[data-anim="foot"] .frame-foot { opacity: 1; transform-origin: 50% 70%; animation: billy-foot 1s ease-in-out infinite; }
+.billy[data-anim="danse"] .frame-danse { opacity: 1; transform-origin: 50% 80%; animation: billy-danse 1.1s ease-in-out infinite; }
 /* UNE seule roue, douce, puis pause (l'image est détourée : seul l'écureuil tourne) */
 @keyframes billy-gym { 0% { transform: rotate(0deg); } 45% { transform: rotate(360deg); } 100% { transform: rotate(360deg); } }
 /* course : va-et-vient fluide avec un léger balancement (pas de saccade) */
 @keyframes billy-rugby { 0%,100% { transform: translateX(-16px) rotate(-3deg); } 50% { transform: translateX(16px) translateY(-5px) rotate(3deg); } }
-@media (prefers-reduced-motion: reduce) { .billy[data-anim] .frame-gym, .billy[data-anim] .frame-rugby { animation: none !important; } }
+/* foot : petit élan + shoot (léger recul puis frappe vers l'avant) */
+@keyframes billy-foot { 0%,100% { transform: translateX(-6px) rotate(-4deg); } 40% { transform: translateX(-6px) rotate(-4deg); } 60% { transform: translateX(8px) rotate(5deg); } 75% { transform: translateX(6px) rotate(3deg); } }
+/* danse : balancement gauche-droite avec petit rebond, joyeux */
+@keyframes billy-danse { 0%,100% { transform: translateX(-10px) rotate(-6deg); } 50% { transform: translateX(10px) translateY(-6px) rotate(6deg); } }
+@media (prefers-reduced-motion: reduce) { .billy[data-anim] .frame-gym, .billy[data-anim] .frame-rugby, .billy[data-anim] .frame-foot, .billy[data-anim] .frame-danse { animation: none !important; } }
