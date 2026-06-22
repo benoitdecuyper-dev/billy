@@ -4,27 +4,28 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="theme-color" content="#ec7a1e" />
-  <title>Billy — prototype temps réel (Modèle A)</title>
+  <title>Billy — démo temps réel (LLM-sélecteur)</title>
   <link rel="stylesheet" href="/css/styles.css" />
   <style>
     .coulisses{position:fixed;left:0;right:0;bottom:0;background:#2c2533;color:#eee;font-size:.8rem;
-      padding:.7rem 1rem calc(.7rem + env(safe-area-inset-bottom));max-height:42vh;overflow:auto;z-index:20;}
+      padding:.7rem 1rem calc(.7rem + env(safe-area-inset-bottom));max-height:46vh;overflow:auto;z-index:20;}
     .coulisses h3{margin:.2rem 0;color:#ffb15c;font-size:.8rem;letter-spacing:.03em;}
     .coulisses .line{margin:.25rem 0;line-height:1.4;}
     .coulisses .k{color:#ffb15c;} .coulisses .ok{color:#7fe0a0;} .coulisses .src{color:#9fb6ff;}
+    .coulisses .warn{color:#ff9b9b;}
     .badge2{position:fixed;top:calc(.7rem + env(safe-area-inset-top));left:50%;transform:translateX(-50%);
       background:#2c2533;color:#ffb15c;font-size:.72rem;font-weight:700;padding:.25rem .7rem;border-radius:999px;z-index:21;}
   </style>
 </head>
 <body>
   <main class="app" data-state="idle" role="main">
-    <div class="badge2">prototype TEMPS RÉEL · Modèle A · 0 crédit</div>
+    <div class="badge2" id="badge">prototype TEMPS RÉEL · LLM-sélecteur</div>
 
     <div class="start" id="start">
       <img class="start__billy" src="/assets/billy.png" alt="Billy" />
-      <p class="start__txt">Démo temps réel : Billy écoute et <b>rebondit sur tes mots</b> — sans jamais inventer de question.</p>
+      <p class="start__txt">Démo temps réel : un <b>LLM choisit</b> la phrase de Billy dans le répertoire pré-validé — il <b>n'invente jamais</b>. Les coulisses montrent chaque décision.</p>
       <button class="start__btn" id="startBtn">Commencer 🌰</button>
-      <p class="start__legal">Voix navigateur pour la relance live (la vraie voix Chloé = ElevenLabs en prod). Contenu neutre.</p>
+      <p class="start__legal">Voix navigateur (0 crédit) ou ElevenLabs si clé. Sans clé LLM → repli déterministe (même architecture). Contenu neutre.</p>
     </div>
 
     <figure class="billy" id="billy" aria-label="Billy">
@@ -40,97 +41,128 @@
   </div>
 
   <script type="module">
-    import { evaluate } from '/lib/antiSuggestion.js';
+    import { audit } from '/lib/antiSuggestion.js';
 
-    // --- Répertoire fixe (audios chaleureux déjà générés : 0 crédit) ---
-    const OPEN = { audio: 'a4', text: "Raconte-moi ce que tu aimes faire. Prends ton temps." }; // invitation d'ouverture
-    const FIXED_RELANCES = [
-      { audio: 'f1', text: "Et après ?" },
-      { audio: 'f2', text: "Dis-m'en plus." },
-    ];
-    const SILENCE = { audio: 'silence', text: "Prends ton temps. Je t'écoute." };
-    const CLOSE = { audio: 'a5', text: "Merci de m'avoir parlé. J'étais contente de t'écouter. On s'arrête là pour la démonstration." };
+    const app = document.querySelector('.app'), billy = document.getElementById('billy');
+    const start = document.getElementById('start'), startBtn = document.getElementById('startBtn');
+    const coulisses = document.getElementById('coulisses'), logEl = document.getElementById('log');
+    const badge = document.getElementById('badge');
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
 
-    const STOP = ['le','la','les','un','une','des','de','du','et','ou','je','tu','il','on','mon','ma','mes','ton','ta',
-      'avec','pour','dans','sur','au','aux','c','est','j','ai','a','que','qui','quoi','moi','toi','se','ce','cet','cette',
-      'puis','aussi','tres','bien','fait','faire','jour','hier','matin','soir','apres','quand','comme'];
-    const TABOU = ['zizi','zezette','sexe','penis','vagin','fesse','fesses','toucher','touche','frapper','taper'];
+    let script = null, frVoice = null, flap = null, childWords = new Set(), tours = [];
+    let PHASES = ['P1', 'P2', 'P3', 'P4', 'P7'], MAX_PER_PHASE = 6;
+    const GUARD_MAX = 60;
+    const OPEN_RELANCES = ['Et après ?', "Dis-m'en plus.", 'Raconte-moi.', "Prends ton temps. Je t'écoute."];
 
-    const app=document.querySelector('.app'), billy=document.getElementById('billy');
-    const start=document.getElementById('start'), startBtn=document.getElementById('startBtn');
-    const coulisses=document.getElementById('coulisses'), logEl=document.getElementById('log');
-    const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-    let frVoice=null, flap=null, childWords=new Set(), turn=0, relanceIdx=0;
+    const setState = (s) => { app.dataset.state = s; };
+    const nowHM = () => new Date().toTimeString().slice(0, 5);
+    const recordTurn = (acteur, texte) => tours.push({ heure: nowHM(), acteur, texte });
+    const canon = (s) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[’]/g, "'").replace(/[^a-z0-9' ]/g, ' ').replace(/\s+/g, ' ').trim();
+    const phraseById = (id) => { for (const p of (script?.phases || [])) for (const it of p.items) if (it.id === id) return it.formulation; return null; };
+    const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    function log(html) { const d = document.createElement('div'); d.className = 'line'; d.innerHTML = html; logEl.prepend(d); }
 
-    function setState(s){app.dataset.state=s;}
-    function log(html){const d=document.createElement('div');d.className='line';d.innerHTML=html;logEl.prepend(d);}
-    function pickVoice(){const v=speechSynthesis.getVoices().filter(x=>/^fr/i.test(x.lang));
-      frVoice=v.find(x=>/google|natural|naturel/i.test(x.name))||v[0]||null;}
-    if('speechSynthesis'in window){pickVoice();speechSynthesis.onvoiceschanged=pickVoice;}
+    function pickVoice() { const v = speechSynthesis.getVoices().filter((x) => /^fr/i.test(x.lang)); frVoice = v.find((x) => /google|natural|naturel/i.test(x.name)) || v[0] || null; }
+    if ('speechSynthesis' in window) { pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
+    function startFlap() { stopFlap(); flap = setInterval(() => billy.classList.toggle('open'), 140); }
+    function stopFlap() { if (flap) { clearInterval(flap); flap = null; } billy.classList.remove('open'); }
 
-    function startFlap(){stopFlap();flap=setInterval(()=>billy.classList.toggle('open'),140);}
-    function stopFlap(){if(flap){clearInterval(flap);flap=null;}billy.classList.remove('open');}
-
-    // Voix chaleureuse pré-enregistrée (fixe)
-    function speakWarm(line){return new Promise(res=>{setState('speaking');startFlap();
-      const a=new Audio('/assets/audio/'+line.audio+'.mp3');const d=()=>{stopFlap();res();};a.onended=d;a.onerror=d;a.play().catch(d);});}
-    // Voix live navigateur (relance dynamique)
-    function speakLive(text){return new Promise(res=>{setState('speaking');startFlap();
-      if(!('speechSynthesis'in window)){stopFlap();res();return;}
-      const u=new SpeechSynthesisUtterance(text);u.lang='fr-FR';if(frVoice)u.voice=frVoice;u.rate=.92;u.pitch=1.08;
-      u.onend=()=>{stopFlap();res();};u.onerror=()=>{stopFlap();res();};speechSynthesis.cancel();speechSynthesis.speak(u);});}
-
-    function listen(){return new Promise(res=>{setState('listening');
-      if(!SR){setTimeout(()=>res(''),3000);return;}
-      const r=new SR();r.lang='fr-FR';r.interimResults=true;r.continuous=true;let txt='',endT=null;
-      r.onresult=e=>{txt=Array.from(e.results).map(x=>x[0].transcript).join(' ').trim();
-        if(endT)clearTimeout(endT);endT=setTimeout(()=>{try{r.stop();}catch{}}, 2600);};
-      r.onerror=()=>{};r.onend=()=>res(txt);try{r.start();}catch{res('');}});}
-
-    // --- MODÈLE A : choisir la réponse à partir des MOTS DE L'ENFANT, jamais inventer ---
-    function chooseRelance(transcript){
-      transcript.toLowerCase().split(/[^a-zàâçéèêëîïôûùü']+/).forEach(w=>{if(w.length>2)childWords.add(w);});
-      const words=transcript.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').split(/[^a-z']+/).filter(Boolean);
-      // mot de contenu de l'enfant, ni vide ni outil ni tabou
-      const kw=words.reverse().find(w=>w.length>3 && !STOP.includes(w) && !TABOU.includes(w));
-      if(kw){
-        const text=`Tu as parlé de ${kw}. Raconte-moi.`;
-        return { kind:'cued', text, kw, voice:'live' };
-      }
-      const r=FIXED_RELANCES[relanceIdx++ % FIXED_RELANCES.length];
-      return { kind:'fixe', text:r.text, audio:r.audio, voice:'warm' };
+    function speakBrowser(text) {
+      return new Promise((res) => {
+        if (!('speechSynthesis' in window)) { res(); return; }
+        const u = new SpeechSynthesisUtterance(text); u.lang = 'fr-FR'; if (frVoice) u.voice = frVoice; u.rate = 0.92; u.pitch = 1.08;
+        u.onend = res; u.onerror = res; speechSynthesis.cancel(); speechSynthesis.speak(u);
+      });
+    }
+    async function speak(text) {
+      setState('speaking');
+      // Défense en profondeur (visible en coulisses) : on repasse le filtre côté client.
+      const v = audit(text, { childLexicon: childWords });
+      if (v.decision === 'BLOCK') { log(`🛑 Filtre client BLOCK (${v.ruleId}) → repli invitation ouverte.`); text = OPEN_RELANCES[0]; }
+      recordTurn('Billy', text);
+      try {
+        const r = await fetch('/api/tts', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text }) });
+        if (r.ok) { const b = await r.blob(); await playUrl(URL.createObjectURL(b)); return; }
+      } catch {}
+      startFlap(); await speakBrowser(text); stopFlap();
+    }
+    function playUrl(url) {
+      return new Promise((res) => { const a = new Audio(url); startFlap(); const d = () => { stopFlap(); try { URL.revokeObjectURL(url); } catch {} res(); }; a.onended = d; a.onerror = d; a.play().catch(d); });
     }
 
-    async function loop(){
-      await speakWarm(OPEN);
-      log(`Billy (ouverture) : « ${OPEN.text} »`);
-      while(turn<3){
-        const heard=await listen();
-        if(!heard){ await speakWarm(SILENCE); log('— silence — Billy invite doucement.'); continue; }
-        log(`👂 Enfant : « <b>${heard}</b> »`);
-        const r=chooseRelance(heard);
-        // GARDE-FOU : le filtre anti-suggestion valide la relance AVANT de la dire
-        const verdict=evaluate(r.text,{childLexicon:childWords,lastChildUtterance:heard});
-        if(verdict.decision==='BLOCK'){
-          log(`🛑 Filtre BLOCK (${verdict.ruleId}) → on retombe sur une relance ouverte sûre.`);
-          const safe=FIXED_RELANCES[relanceIdx++%FIXED_RELANCES.length];
-          await speakWarm(safe); log(`Billy : « ${safe.text} » <span class="src">[fixe · voix chaleureuse]</span>`);
-        } else if(r.voice==='live'){
-          log(`🧠 Modèle A : reprend le mot <span class="k">« ${r.kw} »</span> de l'enfant — filtre <span class="ok">PASS</span>`);
-          await speakLive(r.text); log(`Billy : « ${r.text} » <span class="src">[relance dynamique · voix live]</span>`);
-        } else {
-          await speakWarm(r); log(`Billy : « ${r.text} » <span class="src">[fixe · voix chaleureuse]</span>`);
+    function listen() {
+      return new Promise((res) => {
+        setState('listening');
+        if (!SR) { setTimeout(() => res(''), 3500); return; }
+        const r = new SR(); r.lang = 'fr-FR'; r.interimResults = true; r.continuous = true; let txt = '', endT = null;
+        r.onresult = (e) => { txt = Array.from(e.results).map((x) => x[0].transcript).join(' ').trim(); if (endT) clearTimeout(endT); endT = setTimeout(() => { try { r.stop(); } catch {} }, 2600); };
+        r.onerror = () => {}; r.onend = () => res(txt); try { r.start(); } catch { res(''); }
+      });
+    }
+    function addWords(t) { canon(t).split(' ').forEach((w) => { if (w.length > 2) childWords.add(w); }); }
+
+    // Le sélecteur côté serveur : choisit dans le répertoire (LLM si clé, sinon déterministe).
+    async function nextLine({ phaseId, turnInPhase, lastChild }) {
+      try {
+        const r = await fetch('/api/next', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phaseId, turnInPhase, childUtterance: lastChild, childWords: [...childWords], history: tours.slice(-8) }),
+        });
+        if (r.ok) { const j = await r.json(); if (j && typeof j.text === 'string' && j.text) return j; }
+      } catch {}
+      return { text: OPEN_RELANCES[turnInPhase % OPEN_RELANCES.length], expectsChild: true, signal: 'none', nextPhase: null, source: 'repli-front' };
+    }
+
+    const SRC_LABEL = { repertoire: 'choix LLM dans le répertoire', cued: "reprise d'un mot de l'enfant (cued)", open: 'invitation ouverte', signal: 'signal → séquence imposée', fallback: 'fail-closed (hors-menu)', 'repli-front': 'serveur injoignable' };
+
+    async function onSignal() {
+      log('🚨 <span class="warn">Signal détecté</span> → réassurance + clôture + <b>119</b> (le LLM ne pilote pas).');
+      const c119 = phraseById('P7-2'); if (c119) await speak(c119);
+      const close = phraseById('P7-1'); if (close) await speak(close);
+    }
+
+    async function run() {
+      let idx = 0, turnInPhase = 0, lastChild = '', guard = 0;
+      while (guard++ < GUARD_MAX) {
+        const phaseId = PHASES[idx];
+        const out = await nextLine({ phaseId, turnInPhase, lastChild });
+        log(`🧠 <span class="k">${phaseId}</span> · source : <b>${SRC_LABEL[out.source] || out.source}</b>` +
+            (out.llm ? ' <span class="ok">[LLM actif]</span>' : ' <span class="src">[déterministe]</span>') +
+            (out.nextPhase ? ` · → ${out.nextPhase}` : ''));
+        log(`Billy : « ${esc(out.text)} » <span class="ok">filtre PASS</span>`);
+        await speak(out.text);
+
+        if (out.signal && out.signal !== 'none') { await onSignal(); break; }
+
+        lastChild = '';
+        if (out.expectsChild) {
+          const heard = await listen();
+          if (heard) { addWords(heard); recordTurn('Enfant', heard); lastChild = heard; log(`👂 Enfant : « <b>${esc(heard)}</b> »`); }
+          else log('— silence —');
         }
-        turn++;
+        turnInPhase++;
+
+        let target = idx;
+        const want = out.nextPhase ? PHASES.indexOf(out.nextPhase) : -1;
+        if (want > idx) target = want; else if (turnInPhase >= MAX_PER_PHASE) target = idx + 1;
+        if (target > idx) { if (target >= PHASES.length) break; idx = target; turnInPhase = 0; }
+        if (idx === PHASES.length - 1 && turnInPhase >= 2) break;
       }
-      await speakWarm(CLOSE); log('Billy (clôture).'); setState('idle');
-      start.hidden=false; startBtn.textContent='Recommencer 🌰';
+      log('— fin de la démonstration —');
+      setState('idle'); start.hidden = false; startBtn.textContent = 'Recommencer 🌰';
     }
 
-    startBtn.addEventListener('click',()=>{
-      start.hidden=true; coulisses.hidden=false; turn=0; childWords=new Set(); relanceIdx=0; logEl.innerHTML='';
-      loop();
-    });
+    async function init() {
+      try { script = await fetch('/content/script-billy.json').then((r) => r.json()); } catch { script = { phases: [] }; }
+      const sel = script.selecteur || {};
+      if (Array.isArray(sel.phases_demo_neutre) && sel.phases_demo_neutre.length) PHASES = sel.phases_demo_neutre;
+      if (sel.max_tours_par_phase) MAX_PER_PHASE = sel.max_tours_par_phase;
+      // Sonde l'état du LLM pour le badge.
+      try { const j = await fetch('/api/next', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ phaseId: 'P1', turnInPhase: 0, childWords: [], history: [] }) }).then((r) => r.json()); badge.textContent = j.llm ? 'TEMPS RÉEL · LLM-sélecteur actif' : 'TEMPS RÉEL · sélecteur déterministe (pas de clé LLM)'; } catch {}
+    }
+
+    startBtn.addEventListener('click', () => { start.hidden = true; coulisses.hidden = false; childWords = new Set(); tours = []; logEl.innerHTML = ''; run(); });
+    init();
   </script>
 </body>
 </html>

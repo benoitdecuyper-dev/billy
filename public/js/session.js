@@ -1,28 +1,24 @@
 /*
  * Billy — moteur de SÉANCE (architecture prête pour la prod).
  *
- * - PILOTÉ PAR LE CONTENU : lit public/content/script-billy.json (la « source unique »).
- *   → quand les professionnels valideront le contenu, on remplace ce fichier, sans toucher au code.
+ * - PILOTÉ PAR LE SÉLECTEUR : à chaque tour, le front demande à /api/next la prochaine réplique.
+ *   Côté serveur, un LLM CHOISIT (jamais n'invente) une réplique du répertoire pré-validé
+ *   (public/content/script-billy.json) ; sans clé LLM, repli déterministe. Le texte renvoyé est
+ *   DÉJÀ validé par la couche sûreté ; le front le repasse une 2e fois par audit() (défense en profondeur).
  * - VOIX EN DIRECT : /api/tts (ElevenLabs si une clé est configurée) ; sinon, voix du navigateur.
- *   → en prod, ajouter ELEVENLABS_API_KEY + ELEVENLABS_VOICE_ID = vraie voix Chloé en live partout.
- * - TEMPS RÉEL (Modèle A) : l'enfant parle (STT navigateur) → Billy choisit une relance VALIDÉE
- *   en reprenant le MOT de l'enfant (jamais inventer) → filtre anti-suggestion AVANT la voix.
- * - 2-5 ans : mains-libres (aucun bouton enfant), pas de sous-titres, Billy ne coupe jamais.
- * - Démo NEUTRE : on ne joue que les phases non-sensibles (accueil, règles, récit neutre, clôture).
+ * - TEMPS RÉEL : l'enfant parle (STT navigateur) → Billy reprend SON mot ou enchaîne une invitation
+ *   validée → filtre anti-suggestion AVANT la voix. Billy ne coupe jamais l'enfant.
+ * - 2-5 ans : mains-libres (aucun bouton enfant), pas de sous-titres.
+ * - Démo NEUTRE : seules les phases non-sensibles sont jouées (accueil, règles, récit neutre, clôture).
+ *   Sur SIGNAL (détresse/révélation), Billy rassure sans qualifier, clôt et rappelle le 119.
  */
 import { audit } from '/lib/antiSuggestion.js';
 
 (() => {
   'use strict';
 
-  const NEUTRAL_PHASES = ['P1', 'P2', 'P3', 'P4', 'P7']; // P5 (transition) / P6 (révélation) = exclus de la démo neutre
-  const OPEN_RELANCES = ['Et après ?', "Dis-m'en plus."];
-  const SILENCE_TXT = "Prends ton temps. Je t'écoute.";
-  const STOP = new Set(['les', 'des', 'une', 'mon', 'ton', 'son', 'mes', 'tes', 'ses', 'avec', 'pour', 'dans',
-    'est', 'sont', 'que', 'qui', 'quoi', 'moi', 'toi', 'cette', 'aussi', 'tres', 'bien', 'fait', 'faire',
-    'jour', 'hier', 'matin', 'soir', 'apres', 'quand', 'comme', 'puis', 'alors', 'beaucoup', 'petit', 'grand']);
-  const TABOU = ['zizi', 'zezette', 'sexe', 'penis', 'vagin', 'fesse', 'fesses', 'toucher', 'touche', 'frapper', 'taper'];
-  const END_MS = 2800, NUDGE_MS = 12000, NO_STT_WAIT = 5000, MAX_TURNS = 2;
+  const OPEN_RELANCES = ['Et après ?', "Dis-m'en plus.", 'Raconte-moi.', "Prends ton temps. Je t'écoute."];
+  const END_MS = 2800, NUDGE_MS = 12000, NO_STT_WAIT = 5000, GUARD_MAX = 60;
 
   const app = document.querySelector('.app');
   const billy = document.getElementById('billy');
@@ -30,20 +26,21 @@ import { audit } from '/lib/antiSuggestion.js';
   const startBtn = document.getElementById('startBtn');
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
 
-  let script = null, frVoice = null, flap = null, childWords = new Set(), relIdx = 0, started = false, tours = [];
+  let script = null, frVoice = null, flap = null, childWords = new Set(), started = false, tours = [];
+  let PHASES = ['P1', 'P2', 'P3', 'P4', 'P7'], MAX_PER_PHASE = 6;
 
   const setState = (s) => { app.dataset.state = s; };
   const nowHM = () => new Date().toTimeString().slice(0, 5);
   const recordTurn = (acteur, texte) => tours.push({ heure: nowHM(), acteur, texte });
   const canon = (s) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[’]/g, "'").replace(/[^a-z0-9' ]/g, ' ').replace(/\s+/g, ' ').trim();
+  const phraseById = (id) => { for (const p of (script?.phases || [])) for (const it of p.items) if (it.id === id) return it.formulation; return null; };
 
   if ('speechSynthesis' in window) { const pv = () => { const v = speechSynthesis.getVoices().filter((x) => /^fr/i.test(x.lang)); frVoice = v.find((x) => /google|natural|naturel/i.test(x.name)) || v[0] || null; }; pv(); speechSynthesis.onvoiceschanged = pv; }
 
   function startFlap() { stopFlap(); flap = setInterval(() => billy.classList.toggle('open'), 140); }
   function stopFlap() { if (flap) { clearInterval(flap); flap = null; } billy.classList.remove('open'); }
 
-  // V2-4 — Lip-sync RÉEL : la bouche s'ouvre selon l'amplitude de la voix (WebAudio), pas un
-  // clignotement fixe. Repli sur le flap si l'analyse audio n'est pas disponible.
+  // Lip-sync RÉEL : la bouche s'ouvre selon l'amplitude de la voix (WebAudio). Repli sur le flap.
   let audioCtx = null;
   function playUrl(url) {
     return new Promise((res) => {
@@ -60,11 +57,11 @@ import { audit } from '/lib/antiSuggestion.js';
         const tick = () => {
           analyser.getByteTimeDomainData(data);
           let sum = 0; for (const v of data) { const x = (v - 128) / 128; sum += x * x; }
-          billy.classList.toggle('open', Math.sqrt(sum / data.length) > 0.05); // seuil d'ouverture
+          billy.classList.toggle('open', Math.sqrt(sum / data.length) > 0.05);
           raf = requestAnimationFrame(tick);
         };
         tick();
-      } catch { startFlap(); } // WebAudio indisponible -> flap simple
+      } catch { startFlap(); }
       a.onended = done; a.onerror = done; a.play().catch(done);
     });
   }
@@ -76,18 +73,17 @@ import { audit } from '/lib/antiSuggestion.js';
     });
   }
 
-  // Tout ce que Billy dit passe le filtre AVANT la voix (fail-closed).
+  // Tout ce que Billy dit repasse le filtre AVANT la voix (fail-closed, défense en profondeur).
   async function speak(text) {
     setState('speaking');
     const v = audit(text, { childLexicon: childWords });
-    if (v.decision === 'BLOCK') text = OPEN_RELANCES[0]; // garde-fou : repli sur invitation ouverte
+    if (v.decision === 'BLOCK') text = OPEN_RELANCES[0];
     recordTurn('Billy', text);
     try {
-      // M1 : texte en POST/body (jamais en URL) — il peut contenir un mot repris de l'enfant.
       const r = await fetch('/api/tts', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text }) });
-      if (r.ok) { const b = await r.blob(); await playUrl(URL.createObjectURL(b)); return; } // lip-sync géré dans playUrl
+      if (r.ok) { const b = await r.blob(); await playUrl(URL.createObjectURL(b)); return; }
     } catch {}
-    startFlap(); await speakBrowser(text); stopFlap(); // voix navigateur : pas d'analyse audio -> flap simple
+    startFlap(); await speakBrowser(text); stopFlap();
   }
 
   // Écoute mains-libres (détection auto de fin de parole). Ne coupe jamais.
@@ -104,34 +100,55 @@ import { audit } from '/lib/antiSuggestion.js';
   }
 
   function addWords(t) { canon(t).split(' ').forEach((w) => { if (w.length > 2) childWords.add(w); }); }
-  function pickKeyword(t) {
-    const w = canon(t).split(' ').filter(Boolean).reverse();
-    return w.find((x) => x.length > 3 && !STOP.has(x) && !TABOU.includes(x)) || null;
+
+  // Demande la prochaine réplique au serveur (qui la choisit dans le répertoire + la valide).
+  // Repli LOCAL (serveur injoignable) : invitation ouverte neutre.
+  async function nextLine({ phaseId, turnInPhase, lastChild }) {
+    try {
+      const r = await fetch('/api/next', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phaseId, turnInPhase, childUtterance: lastChild, childWords: [...childWords], history: tours.slice(-8) }),
+      });
+      if (r.ok) { const j = await r.json(); if (j && typeof j.text === 'string' && j.text) return j; }
+    } catch {}
+    return { text: OPEN_RELANCES[turnInPhase % OPEN_RELANCES.length], expectsChild: true, signal: 'none', nextPhase: null };
   }
 
-  // MODÈLE A : reprend le mot de l'enfant si possible, sinon relance ouverte. Validé par le filtre.
-  async function childExchange() {
-    let nudged = false;
-    for (let i = 0; i < MAX_TURNS;) {
-      const heard = await listen();
-      if (!heard) { if (!nudged) { nudged = true; await speak(SILENCE_TXT); continue; } break; }
-      addWords(heard); recordTurn('Enfant', heard);
-      const kw = pickKeyword(heard);
-      let relance = kw ? `Tu as parlé de ${kw}. Raconte-moi.` : OPEN_RELANCES[relIdx++ % OPEN_RELANCES.length];
-      if (audit(relance, { childLexicon: childWords, lastChildUtterance: heard }).decision === 'BLOCK') relance = OPEN_RELANCES[relIdx++ % OPEN_RELANCES.length];
-      await speak(relance);
-      i++;
-    }
+  // Sur SIGNAL : la réassurance a déjà été dite (renvoyée par le serveur). On clôt en douceur
+  // et on rappelle le 119 à hauteur d'enfant. Aucune investigation supplémentaire.
+  async function onSignal() {
+    const c119 = phraseById('P7-2'); if (c119) await speak(c119);
+    const close = phraseById('P7-1'); if (close) await speak(close);
   }
 
+  // Boucle de séance, pilotée par le sélecteur. Termine sur clôture, signal, ou garde-fou.
   async function run() {
-    const byId = Object.fromEntries(script.phases.map((p) => [p.id, p]));
-    for (const id of NEUTRAL_PHASES) {
-      const phase = byId[id]; if (!phase) continue;
-      for (const item of phase.items) {
-        await speak(item.formulation);
-        if (item.type === 'billy_demande') await childExchange();
+    let idx = 0, turnInPhase = 0, lastChild = '', guard = 0;
+    while (guard++ < GUARD_MAX) {
+      const phaseId = PHASES[idx];
+      const out = await nextLine({ phaseId, turnInPhase, lastChild });
+      await speak(out.text);
+
+      if (out.signal && out.signal !== 'none') { await onSignal(); break; }
+
+      lastChild = '';
+      if (out.expectsChild) {
+        const heard = await listen();
+        if (heard) { addWords(heard); recordTurn('Enfant', heard); lastChild = heard; }
       }
+      turnInPhase++;
+
+      // Avancement de phase : choix du serveur (vers l'avant) ou plafond de tours.
+      let target = idx;
+      const want = out.nextPhase ? PHASES.indexOf(out.nextPhase) : -1;
+      if (want > idx) target = want;
+      else if (turnInPhase >= MAX_PER_PHASE) target = idx + 1;
+      if (target > idx) {
+        if (target >= PHASES.length) break;
+        idx = target; turnInPhase = 0;
+      }
+      // Fin naturelle : phase de clôture atteinte et assez dite.
+      if (idx === PHASES.length - 1 && turnInPhase >= 2) break;
     }
     finish();
   }
@@ -157,25 +174,27 @@ import { audit } from '/lib/antiSuggestion.js';
     link.style.display = '';
   }
   async function openReport() {
-    const now = new Date();
     const session = {
-      date: now.toLocaleDateString('fr-FR'), debut: tours[0]?.heure || nowHM(), fin: nowHM(), duree: '—',
+      date: new Date().toLocaleDateString('fr-FR'), debut: tours[0]?.heure || nowHM(), fin: nowHM(), duree: '—',
       enfant: { prenom: '(non saisi)', age: '2-5 ans' }, version: 'séance démo (contenu neutre)',
       tours, recap: [], signaux: [],
     };
     try {
       const r = await fetch('/api/report', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(session) });
       const b = await r.blob(); const u = URL.createObjectURL(b); window.open(u, '_blank');
-      setTimeout(() => { try { URL.revokeObjectURL(u); } catch {} }, 60000); // É3 : libère le blob (verbatim) après ouverture
+      setTimeout(() => { try { URL.revokeObjectURL(u); } catch {} }, 60000);
     } catch {}
   }
 
   async function init() {
     try { script = await fetch('/content/script-billy.json').then((r) => r.json()); }
     catch { script = { phases: [] }; }
+    const sel = script.selecteur || {};
+    if (Array.isArray(sel.phases_demo_neutre) && sel.phases_demo_neutre.length) PHASES = sel.phases_demo_neutre;
+    if (sel.max_tours_par_phase) MAX_PER_PHASE = sel.max_tours_par_phase;
     startBtn.addEventListener('click', () => {
       if (started) return; started = true; start.hidden = true;
-      childWords = new Set(); relIdx = 0; tours = [];
+      childWords = new Set(); tours = [];
       const rl = document.getElementById('reportLink'); if (rl) rl.style.display = 'none';
       run();
     });

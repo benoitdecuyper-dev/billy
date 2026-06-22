@@ -1,0 +1,28 @@
+# Blueprint Render — déploiement de Billy (démo). Convention du parc (cf. Sporae, Wikifluence) :
+# repo GitHub benoitdecuyper-dev + Render (Node, Frankfurt). Secrets en variables d'env (sync:false),
+# jamais committés. Déclenchement du déploiement via l'API Render (cf. docs/05-deploiement-cartographie.md).
+services:
+  - type: web
+    name: billy
+    runtime: node
+    plan: free
+    region: frankfurt
+    branch: main
+    buildCommand: npm install
+    startCommand: npm start
+    autoDeploy: true
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: BILLY_LLM_MODEL
+        value: claude-opus-4-8
+      # Sélecteur LLM : sans clé, Billy tourne en repli déterministe (la démo marche quand même).
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      # Voix ElevenLabs (optionnel) : sans clé, voix du navigateur.
+      - key: ELEVENLABS_API_KEY
+        sync: false
+      - key: ELEVENLABS_VOICE_ID
+        sync: false
+      # PORT est injecté automatiquement par Render — ne pas le définir ici.

@@ -14,9 +14,16 @@ import QRCode from 'qrcode';
 import selfsigned from 'selfsigned';
 import { streamReportPdf, streamConsolidatedPdf } from '../report/generatePdf.js';
 import { buildConsolidated } from '../report/consolidate.js';
+import { chooseNext } from '../conversation/selector.js';
+import { selectViaLLM, llmAvailable } from '../conversation/llm.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PUBLIC_DIR = path.resolve(__dirname, '../../public');
+
+// Répertoire fermé pré-validé (source unique). Chargé une fois ; le LLM n'y pioche que des `id`.
+let SCRIPT = { phases: [] };
+try { SCRIPT = JSON.parse(await readFile(path.join(PUBLIC_DIR, 'content', 'script-billy.json'), 'utf8')); }
+catch (e) { console.log('script-billy.json illisible :', e.message); }
 const PORT = Number(process.env.PORT) || 3000;
 const HTTPS_PORT = Number(process.env.HTTPS_PORT) || 3443;
 
@@ -63,6 +70,36 @@ async function handler(req, res) {
       const png = await QRCode.toBuffer(text, { width: 320, margin: 1, color: { dark: '#4f4438', light: '#ffffff' } });
       res.writeHead(200, { 'Content-Type': 'image/png' }); res.end(png);
     } catch { res.writeHead(400); res.end('bad qr'); }
+    return;
+  }
+
+  // Sélecteur de répliques (hybride LLM). Le navigateur envoie l'état (phase, historique, dernier
+  // énoncé de l'enfant, mots de l'enfant) ; on renvoie un TEXTE DÉJÀ VALIDÉ par la couche sûreté.
+  // Le LLM ne CHOISIT que dans le répertoire (jamais de texte libre) ; la clé reste côté serveur.
+  // Sans ANTHROPIC_API_KEY -> repli déterministe (la démo marche quand même).
+  if (url.pathname === '/api/next' && req.method === 'POST') {
+    let body = '';
+    req.on('data', (c) => { body += c; if (body.length > 2e5) req.destroy(); });
+    req.on('end', async () => {
+      let p; try { p = JSON.parse(body); } catch { res.writeHead(400, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ error: 'bad_json' })); return; }
+      try {
+        const out = await chooseNext({
+          script: SCRIPT,
+          phaseId: typeof p.phaseId === 'string' ? p.phaseId : 'P1',
+          history: Array.isArray(p.history) ? p.history : [],
+          childUtterance: typeof p.childUtterance === 'string' ? p.childUtterance : '',
+          childWords: Array.isArray(p.childWords) ? p.childWords : [],
+          turnInPhase: Number(p.turnInPhase) || 0,
+          llmFn: llmAvailable() ? selectViaLLM : null,
+        });
+        res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
+        res.end(JSON.stringify({ ...out, llm: llmAvailable() }));
+      } catch {
+        // fail-closed : le front a son propre repli local en cas d'absence de réponse
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ text: "Dis-m'en plus.", expectsChild: true, signal: 'none', nextPhase: null, source: 'error' }));
+      }
+    });
     return;
   }
 
@@ -193,13 +230,15 @@ const httpServer = http.createServer(handler);
 new WebSocketServer({ server: httpServer, path: '/signal' }).on('connection', handleConnection);
 httpServer.listen(PORT, () => console.log(`HTTP  : http://localhost:${PORT}`));
 
-// --- HTTPS auto-signé (pour de vrais téléphones en LAN) ---
-try {
-  const pems = await selfsigned.generate([{ name: 'commonName', value: 'billy.local' }], { days: 365, keySize: 2048, algorithm: 'sha256' });
-  const httpsServer = https.createServer({ key: pems.private, cert: pems.cert }, handler);
-  new WebSocketServer({ server: httpsServer, path: '/signal' }).on('connection', handleConnection);
-  httpsServer.listen(HTTPS_PORT, () => {
-    console.log(`HTTPS : https://localhost:${HTTPS_PORT}  (certificat auto-signé)`);
-    for (const ip of lanIPs()) console.log(`        sur le réseau : https://${ip}:${HTTPS_PORT}`);
-  });
-} catch (e) { console.log('HTTPS désactivé :', e.message); }
+// --- HTTPS auto-signé (DEV uniquement ; en prod, Render/host fournit le TLS au edge) ---
+if (process.env.NODE_ENV !== 'production') {
+  try {
+    const pems = await selfsigned.generate([{ name: 'commonName', value: 'billy.local' }], { days: 365, keySize: 2048, algorithm: 'sha256' });
+    const httpsServer = https.createServer({ key: pems.private, cert: pems.cert }, handler);
+    new WebSocketServer({ server: httpsServer, path: '/signal' }).on('connection', handleConnection);
+    httpsServer.listen(HTTPS_PORT, () => {
+      console.log(`HTTPS : https://localhost:${HTTPS_PORT}  (certificat auto-signé)`);
+      for (const ip of lanIPs()) console.log(`        sur le réseau : https://${ip}:${HTTPS_PORT}`);
+    });
+  } catch (e) { console.log('HTTPS désactivé :', e.message); }
+}
