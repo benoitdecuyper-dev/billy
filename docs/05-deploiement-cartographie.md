@@ -8,8 +8,8 @@
 
 | # | Service | Rôle | Référence | État |
 |---|---------|------|-----------|------|
-| 1 | **GitHub** | Code source | `benoitdecuyper-dev/billy` (**privé**) | ✅ |
-| 2 | **Render** | Hébergement Node + HTTPS | service `billy` (free, Frankfurt) — voir `render.yaml` | ⏳ à créer |
+| 1 | **GitHub** | Code source | `benoitdecuyper-dev/billy` (**public**) | ✅ |
+| 2 | **Render** | Hébergement Node + HTTPS | service `billy` = `srv-d8seiom7r5hc73fdddfg` (free, Frankfurt) → **https://billy-zt3x.onrender.com** | ✅ en prod |
 | 3 | **Anthropic** | LLM-sélecteur (`/api/next`) | clé `ANTHROPIC_API_KEY` (env Render) | ⏳ optionnel |
 | 4 | **ElevenLabs** | Voix Billy (`/api/tts`) | `ELEVENLABS_*` (env Render) | ⏳ optionnel |
 
@@ -35,19 +35,17 @@ Render fournit le TLS au edge.
 
 ## 4. Procédure de déploiement (convention parc)
 
-Création initiale du service (une fois), via l'**API Render** (`RENDER_API_KEY`, à générer dans
-Render → Account Settings → API Keys) :
+Service **déjà créé** (2026-06-22) via l'**API Render** (`RENDER_API_KEY`, owner
+`tea-d8okctbeo5us73ed342g`). Pour les **mises à jour** : `git push origin main` puis déclencher le
+deploy (l'auto-deploy ne part pas toujours seul) :
 ```
-POST https://api.render.com/v1/services
-  Authorization: Bearer $RENDER_API_KEY
-  { type: web_service, name: billy, repo: https://github.com/benoitdecuyper-dev/billy,
-    branch: main, serviceDetails:{ env: node, region: frankfurt, plan: free,
-    envSpecificDetails:{ buildCommand:"npm install", startCommand:"npm start" } } }
+POST https://api.render.com/v1/services/srv-d8seiom7r5hc73fdddfg/deploys   (Bearer $RENDER_API_KEY)
 ```
-Puis saisir les secrets (env vars) dans le dashboard, et pour les MAJ suivantes :
-```
-POST https://api.render.com/v1/services/<srv-id>/deploys   (Bearer $RENDER_API_KEY)
-```
+Vérifier le statut (`live`) : `GET /v1/services/srv-d8seiom7r5hc73fdddfg/deploys?limit=1`.
+
+**Secrets à ajouter dans le dashboard / via l'API** pour activer les options :
+`ANTHROPIC_API_KEY` (active le vrai LLM-sélecteur ; sinon repli déterministe),
+`ELEVENLABS_API_KEY` + `ELEVENLABS_VOICE_ID` (vraie voix ; sinon voix navigateur).
 > Comme Sporae : si le dépôt est ajouté sans webhook GitHub, l'auto-déploiement ne se déclenche
 > pas sur `git push` → déclencher le deploy via l'API. (Idéal : autoriser l'app GitHub de Render
 > sur le dépôt privé pour récupérer l'auto-déploiement.)
