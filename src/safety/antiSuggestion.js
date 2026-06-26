@@ -71,6 +71,20 @@ const APPROVED_RAW = [
   "Tu as bien fait de m'en parler. Tu n'as rien fait de mal.",
   "Merci de m'avoir parlé, c'était courageux. Maintenant, des grandes personnes dont c'est le métier vont pouvoir t'aider.",
   "Merci de m'avoir raconté tout ça. C'était chouette de t'écouter.",
+  // Pool conversationnel (phrases neutres ; cf. script-billy.json > conversationnel) — brouillon à valider.
+  "D'accord.",
+  "D'accord, je t'écoute.",
+  "Je t'écoute.",
+  "Je t'entends.",
+  "Hm, hm.",
+  "Oui.",
+  "Tu peux continuer.",
+  "Tu peux m'en dire plus si tu veux.",
+  "Comme tu veux.",
+  "Prends ton temps.",
+  "On a le temps.",
+  "C'est toi qui parles, moi je t'écoute.",
+  "Je suis là.",
 ];
 const ALLOWED = new Set(APPROVED_RAW.map(canon));
 // Interrogatives/relances OUVERTES approuvées : seules interrogatives tolérées par l'audit.

@@ -156,6 +156,25 @@
       ]
     }
   ],
+  "conversationnel": {
+    "titre": "Pool conversationnel partagé (phrases neutres, proposées dans toutes les phases sauf P6)",
+    "note": "Backchannels et encouragements minimaux pour rendre Billy plus vivant SANS jamais investiguer, nommer, évaluer ni suggérer. Le LLM-sélecteur les voit EN PLUS du menu de la phase courante ; jamais en P6 (révélation, séquence imposée). Le mode déterministe (sans LLM) ne les utilise pas. Chaque phrase passe audit() (script-coherence.test) et figure dans l'allow-list APPROVED_RAW. BROUILLON — à valider/compléter avec les pros (tonalité, pertinence 2-5 ans).",
+    "items": [
+      {"id": "PC-1", "type": "conversationnel", "statut": "brouillon", "intent": "acquiescer simplement, sans évaluer", "formulation": "D'accord.", "justification": "Encouragement minimal non directif (ne valide pas le contenu).", "source": "NICHD (encouragements minimaux)"},
+      {"id": "PC-2", "type": "conversationnel", "statut": "brouillon", "intent": "acquiescer et marquer l'écoute", "formulation": "D'accord, je t'écoute.", "justification": "Encouragement minimal + signal d'écoute.", "source": "NICHD / CIIVISE"},
+      {"id": "PC-3", "type": "conversationnel", "statut": "brouillon", "intent": "marquer qu'on écoute", "formulation": "Je t'écoute.", "justification": "Signal d'écoute, n'oriente pas.", "source": "CIIVISE"},
+      {"id": "PC-4", "type": "conversationnel", "statut": "brouillon", "intent": "accuser réception avec douceur", "formulation": "Je t'entends.", "justification": "Accusé de réception neutre (ne qualifie pas).", "source": "CIIVISE"},
+      {"id": "PC-5", "type": "conversationnel", "statut": "brouillon", "intent": "petit signe d'écoute (backchannel)", "formulation": "Hm, hm.", "justification": "Backchannel minimal, n'interrompt pas le récit.", "source": "NICHD (encouragements minimaux)"},
+      {"id": "PC-6", "type": "conversationnel", "statut": "brouillon", "intent": "acquiescer minimalement", "formulation": "Oui.", "justification": "Encouragement minimal.", "source": "NICHD"},
+      {"id": "PC-7", "type": "conversationnel", "statut": "brouillon", "intent": "inviter doucement à poursuivre", "formulation": "Tu peux continuer.", "justification": "Invitation ouverte à poursuivre, sans presser.", "source": "NICHD / CIIVISE"},
+      {"id": "PC-8", "type": "conversationnel", "statut": "brouillon", "intent": "ouvrir la porte sans presser", "formulation": "Tu peux m'en dire plus si tu veux.", "justification": "Invitation conditionnelle au choix de l'enfant.", "source": "NICHD 2021"},
+      {"id": "PC-9", "type": "conversationnel", "statut": "brouillon", "intent": "laisser le contrôle à l'enfant", "formulation": "Comme tu veux.", "justification": "Rend le contrôle à l'enfant.", "source": "CIIVISE"},
+      {"id": "PC-10", "type": "conversationnel", "statut": "brouillon", "intent": "rassurer sur le rythme", "formulation": "Prends ton temps.", "justification": "Respect des silences/rythme.", "source": "NICHD / CIIVISE"},
+      {"id": "PC-11", "type": "conversationnel", "statut": "brouillon", "intent": "déstresser sur le rythme", "formulation": "On a le temps.", "justification": "Déstresse, ne presse pas.", "source": "CIIVISE"},
+      {"id": "PC-12", "type": "conversationnel", "statut": "brouillon", "intent": "rappeler que c'est l'enfant qui mène", "formulation": "C'est toi qui parles, moi je t'écoute.", "justification": "Pose le cadre enfant-mène / Billy-écoute.", "source": "NICHD (enfant mène le récit)"},
+      {"id": "PC-13", "type": "conversationnel", "statut": "brouillon", "intent": "présence rassurante, neutre", "formulation": "Je suis là.", "justification": "Réassurance de présence, sans lien affectif simulé.", "source": "CIIVISE"}
+    ]
+  },
   "interdits": {
     "titre": "Ce que Billy ne dit JAMAIS",
     "regles": [

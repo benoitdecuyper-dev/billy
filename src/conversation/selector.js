@@ -46,6 +46,16 @@ function buildMenu(script, phaseId) {
     }));
 }
 
+/* Pool conversationnel partagé : phrases neutres (backchannels/encouragements) proposées au
+ * LLM EN PLUS du menu de phase, pour rendre Billy plus vivant. JAMAIS en P6 (révélation :
+ * séquence imposée, aucun choix libre — cohérent avec buildMenu). N'altère PAS le menu de phase
+ * (déterministe inchangé) : ces items ne servent qu'au prompt LLM et à la validation finalize(). */
+function buildConvMenu(script, phaseId) {
+  if (phaseId === 'P6') return [];
+  const pool = (script.conversationnel && script.conversationnel.items) || [];
+  return pool.map((it) => ({ id: it.id, formulation: it.formulation, intent: it.intent || '', type: it.type || 'conversationnel', expectsChild: true }));
+}
+
 /* Mot repris à l'enfant pour une cued-invitation (dernier mot porteur, non-tabou). */
 function pickChildWord(utterance) {
   const words = canon(utterance || '').split(' ').filter(Boolean).reverse();
@@ -163,16 +173,17 @@ function finalize(decision, { script, menu, childWords, childUtterance }) {
  * un texte déjà validé par la couche sûreté.
  */
 async function chooseNext({ script, phaseId, history = [], childUtterance = '', childWords, turnInPhase = 0, llmFn = null }) {
-  const menu = buildMenu(script, phaseId);
+  const menu = buildMenu(script, phaseId);                       // items de phase (déterministe + contrat de test)
+  const fullMenu = menu.concat(buildConvMenu(script, phaseId));  // + pool conversationnel (LLM & validation)
   let decision = null;
   if (llmFn) {
-    try { decision = await llmFn(buildPrompt({ script, phaseId, menu, history, childUtterance })); }
+    try { decision = await llmFn(buildPrompt({ script, phaseId, menu: fullMenu, history, childUtterance })); }
     catch { decision = null; }
   }
   if (!decision || typeof decision !== 'object') {
     decision = chooseDeterministic({ menu, childUtterance, childWords, turnInPhase, script, phaseId });
   }
-  return finalize(decision, { script, menu, childWords, childUtterance });
+  return finalize(decision, { script, menu: fullMenu, childWords, childUtterance });
 }
 
-export { chooseNext, buildMenu, buildPrompt, finalize, chooseDeterministic, pickChildWord, cuedText };
+export { chooseNext, buildMenu, buildConvMenu, buildPrompt, finalize, chooseDeterministic, pickChildWord, cuedText };

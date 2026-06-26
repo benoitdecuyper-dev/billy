@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
-import { chooseNext, buildMenu, finalize, pickChildWord } from './selector.js';
+import { chooseNext, buildMenu, buildConvMenu, finalize, pickChildWord } from './selector.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const SCRIPT = JSON.parse(readFileSync(path.resolve(__dirname, '../../public/content/script-billy.json'), 'utf8'));
@@ -92,6 +92,20 @@ test('nextPhase est conservée à travers finalize (avancement piloté par le s�
 test('pickChildWord ignore les mots-outils et les mots courts', () => {
   assert.equal(pickChildWord('avec mon chien'), 'chien');
   assert.equal(pickChildWord('le'), null);
+});
+
+test('pool conversationnel : un id PC-* est jouable dans une phase normale (P4)', async () => {
+  const pc = SCRIPT.conversationnel.items[0]; // PC-1 "D'accord."
+  const out = await chooseNext({ script: SCRIPT, phaseId: 'P4', childWords: [], llmFn: fixed({ action: 'say', phraseId: pc.id, signal: 'none' }) });
+  assert.equal(out.source, 'repertoire');
+  assert.equal(out.text, pc.formulation);
+});
+
+test('pool conversationnel : JAMAIS proposé en P6, et un id PC-* y est fail-closed', async () => {
+  assert.equal(buildConvMenu(SCRIPT, 'P6').length, 0, 'aucune phrase conversationnelle en P6');
+  assert.ok(buildConvMenu(SCRIPT, 'P4').length > 0);
+  const out = await chooseNext({ script: SCRIPT, phaseId: 'P6', childWords: [], llmFn: fixed({ action: 'say', phraseId: 'PC-1', signal: 'none' }) });
+  assert.equal(out.source, 'fallback', 'un PC-* en P6 ne doit pas être jouable');
 });
 
 test('finalize attrape toute exception et renvoie un repli sûr', () => {
