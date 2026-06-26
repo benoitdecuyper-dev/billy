@@ -41,17 +41,18 @@ function tableToList(rows) {
   const cells = rows.map((r) => r.replace(/^\s*\|/, '').replace(/\|\s*$/, '').split('|').map((c) => c.trim()));
   const head = cells[0];
   const body = cells.slice(2); // saute le séparateur ---
+  // items = HTML FINAL (inline appliqué ici une seule fois) → émis sans ré-inline (type 'ulraw').
   const items = body.map((row) => {
+    const l0 = inline(row[0] || '');
+    const left = /<(strong|b)\b/i.test(l0) ? l0 : `<strong>${l0}</strong>`;
     if (head.length <= 2) {
-      const left = inline(row[0] || '');
       const right = inline(row[1] || '');
-      return right ? `<strong>${left}</strong> — ${right}` : `<strong>${left}</strong>`;
+      return right ? `${left} — ${right}` : left;
     }
-    const left = `<strong>${inline(row[0] || '')}</strong>`;
     const rest = row.slice(1).map((c, k) => c ? `${inline(head[k + 1])} : ${inline(c)}` : '').filter(Boolean).join(' · ');
     return rest ? `${left} — ${rest}` : left;
   });
-  return { type: 'ul', items };
+  return { type: 'ulraw', items };
 }
 
 while (i < lines.length) {
@@ -128,6 +129,7 @@ for (const b of blocks) {
     case 'pre': html += `<pre>${esc(b.text)}</pre>`; break;
     case 'hr': html += '<hr>'; break;
     case 'ul': case 'ol': html += `<${b.type}>` + b.items.map((it) => `<li>${inline(it)}</li>`).join('') + `</${b.type}>`; break;
+    case 'ulraw': html += '<ul>' + b.items.map((it) => `<li>${it}</li>`).join('') + '</ul>'; break; // déjà inline-é
   }
 }
 // si pas de h1 en tête, préfixer le sommaire
