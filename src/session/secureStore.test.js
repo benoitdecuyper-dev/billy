@@ -32,8 +32,12 @@ test('BILLY-104 : le store ne contient AUCUNE donnée en clair (chiffré au repo
   const st = memStorage();
   await saveState(st, CODE, advance(emptyState(), 'P4', 1000));
   const blob = st.getItem(STORAGE_KEY);
-  assert.ok(!blob.includes('P4'), 'aucun identifiant de phase en clair');
+  // On vérifie l'absence des CLÉS de l'état en clair (chaînes assez longues pour
+  // ne pas apparaître par hasard dans le base64 du chiffré ; « P4 » seul, 2 caractères,
+  // se retrouve ~1 fois sur 10 dans le ct/iv/salt aléatoires → assertion fragile retirée).
   assert.ok(!blob.includes('phaseId'), 'aucune clé de l\'état en clair');
+  assert.ok(!blob.includes('completedPhases'), 'aucune clé de l\'état en clair');
+  assert.ok(!blob.includes('signalEmitted'), 'aucune clé de l\'état en clair');
   // structure attendue : sel + iv + cipher + horodatage de conservation, rien d'autre
   assert.deepEqual(Object.keys(JSON.parse(blob)).sort(), ['ct', 'iv', 'salt', 'savedAt', 'v']);
 });
