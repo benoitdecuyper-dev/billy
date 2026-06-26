@@ -423,14 +423,46 @@ Tu as maintenant la carte complète. Pour la garder sous la main :
 |---|---|
 | Chaque phrase que Billy peut dire, avec son intention et sa source | **/atelier.html** (« Cahier de la posture ») |
 | La logique « reprend le mot de l'enfant + filtre en direct » | **/temps-reel.html** (« Coulisses ») |
-| Que tout le répertoire passe le filtre | `npm test` (88 tests verts) |
+| Que tout le répertoire passe le filtre | `npm test` (90 tests verts) |
 | Le détail des règles | `docs/spec-safety-layer.md` |
 | La conception du LLM-sélecteur | `docs/V2-llm-selecteur.md` |
 | Les attaques qu'on a menées contre Billy et les correctifs | `docs/redteam-rapport-V1.md` |
 
 ---
 
-## 7. Carte mémo (à imprimer)
+## 7. Le pool conversationnel — enrichir sans déraper
+
+Pour rendre Billy plus vivant (et non robotique), le répertoire contient un **pool de phrases
+neutres « conversationnelles »** (≈ 50 : acquiescements, signaux d'écoute, invitations à
+poursuivre, repères de rythme, rappels que c'est l'enfant qui décide). Le LLM-sélecteur les voit
+**en plus** du menu de la phase courante — **jamais en P6** (révélation : séquence imposée) — et
+le **mode déterministe ne les utilise pas**. Comme tout le reste, chaque phrase **passe `audit()`**
+et figure dans l'allow-list ; `finalize()` re-valide tout choix.
+
+### 7.1 Ce qu'on a volontairement EXCLU (et pourquoi)
+
+Point important : **la sélection ne s'arrête pas au filtre automatique.** Certaines phrases
+**passent** pourtant `audit()`, mais ont été **écartées par jugement clinique** parce qu'elles
+créent un risque que les regex ne capturent pas. C'est une décision humaine, assumée :
+
+| Phrases écartées | Pourquoi (le risque) |
+|---|---|
+| **Éloges / félicitations** : « Bravo. », « Super. », « Très bien. », « C'est bien. », « Parfait. » | **Risque de RENFORCEMENT.** Récompenser/valoriser une réponse pousse l'enfant à en dire « plus » pour faire plaisir → oriente et **contamine** la parole. Le NICHD proscrit toute récompense. |
+| **Interprétatifs** : « Je vois. », « Je comprends. » | Billy semblerait **comprendre / valider le contenu**, alors qu'il ne doit ni qualifier, ni interpréter, ni conclure. |
+| **Lien affectif / attachement** : « Je suis là pour toi. », « Je suis avec toi. » | **Attachement affectif simulé** (anti-attachement) : Billy n'est pas un proche ; créer un lien fausse la relation et la parole. |
+| **Mercis en cours d'échange** : « Merci. », « Merci de me raconter. » | Un merci **mi-parcours** fonctionne comme une **récompense** (même effet que l'éloge). Le remerciement reste réservé à la **clôture** (P7). |
+
+À l'inverse, le **filtre automatique** a, lui, bloqué « **On continue quand tu veux.** »
+(`REINJECTION_PAST` : « on continue » évoque une séance partagée) — preuve que les deux niveaux
+(regex **et** jugement) travaillent ensemble.
+
+> **Pourquoi le documenter ?** Parce que « ce qu'on refuse de dire à un enfant » est aussi
+> important que « ce qu'on dit ». Cette liste d'exclusions est soumise aux pros au même titre que
+> le répertoire : ils peuvent en ajouter, en retirer, ou nuancer. Tout reste **brouillon**.
+
+---
+
+## 8. Carte mémo (à imprimer)
 
 ```
   MÉTHODE              →   CODE                          →   GARANTIE
